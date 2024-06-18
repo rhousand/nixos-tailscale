@@ -39,7 +39,7 @@
     '';
   };
 
-  networking.hostName = "ts-sn-test1";
+  networking.hostName = gladstoneArgs.hostName;
   networking.firewall = {
     # enable the firewall
     enable = true;
