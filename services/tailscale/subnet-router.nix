@@ -4,6 +4,7 @@
   gladstoneArgs,
   ...
 }: {
+  # Install and enable tailscaled.service. The useRoutingFetures set to server allow subnet routing and dns routing
   services.tailscale = {
     enable = true;
     package = pkgs.unstable.tailscale;
