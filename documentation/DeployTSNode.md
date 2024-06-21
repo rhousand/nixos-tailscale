@@ -1,7 +1,4 @@
 # Deploy TailScale 
-  
-    [TOC]
-
 ## New Node Connector / Subnet Router
 ### Edit the flake.nix file and copy the last host in the nixosConfiguration section of a host. 
 A host block will look something like this:
