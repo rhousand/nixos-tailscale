@@ -48,11 +48,11 @@ ts-sn-test2 = lib.nixosSystem {
       };
 ```
 * Update the gladstoneArgs to match the requirements for the Node
-    Note: When adding new variables use Lower Camel Case styling.
   * gladstoneArgs.tsAuthKey: the install key created from the Tailscale web console.
   * tsAdvertisedTags: list of tags used by tailscale to attach the node to a Application
   * hostName:  This sets the hostname of the EC2 instance.
   * Refer to the first node configuration for documentation of each variables. 
+Note: When adding new variables use Lower Camel Case styling.
 * Save and commit your changes.
 
 
