@@ -35,7 +35,7 @@
       fi
 
       # otherwise authenticate with tailscale
-      ${tailscale}/bin/tailscale up --ssh --authkey ${gladstoneArgs.tsAuthKey}
+      ${tailscale}/bin/tailscale up --ssh --advertise-connector --advertise-tags=${gladstoneArgs.tsAdvertiseTags} --authkey ${gladstoneArgs.tsAuthKey}
 
     '';
   };
