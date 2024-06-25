@@ -40,6 +40,7 @@
           gladstoneArgs = {
             # tsAuthKey should not be created as a reusable key in Tailscale
             tsAuthKey = "tskey-auth-kTnLC4a9mY11CNTRL-rydesjccmPSAQDUPm9JiPSzbxmkUiXmL";
+            tsAdvertiseTags = "tag:snowflake";
             hostName = "ts-sn-test1";
           };
         in [
@@ -84,7 +85,47 @@
         modules = let
           gladstoneArgs = {
             tsAuthKey = "tskey-auth-kDhHtSrqTn11CNTRL-ZhpWoi6KCe51A1ZqTBo8e5eisT83iEbz";
+            tsAdvertiseTags = "tag:rds-nonprod";
             hostName = "ts-sn-test2";
+          };
+        in [
+          ./configuration.nix
+          ({
+            config,
+            pkgs,
+            lib,
+            ...
+          }: {
+            imports = [
+              (import ./services/tailscale/subnet-router.nix {inherit config pkgs lib gladstoneArgs;})
+            ];
+          })
+
+          ({
+            pkgs,
+            config,
+            ...
+          }: {
+            nixpkgs = {
+              overlays = [
+                (self: super: {
+                  unstable = import nixos-unstable {
+                    system = "x86_64-linux";
+                    config.allowUnfree = true;
+                  };
+                })
+              ];
+            };
+          })
+        ];
+      };
+      ts-sn-stage1 = lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = let
+          gladstoneArgs = {
+            tsAuthKey = "tskey-auth-krviUjVvbQ11CNTRL-9p9YANcX7BQKnvXMnZm8BQQA6UZKUWo7P";
+            tsAdvertiseTags = "tag:snowflake,tag:rds-stage";
+            hostName = "ts-sn-stage1";
           };
         in [
           ./configuration.nix
