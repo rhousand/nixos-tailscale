@@ -12,6 +12,7 @@
   environment.systemPackages = with pkgs; [
     vim-full
     unstable.tailscale
+    git
   ];
   system.stateVersion = "24.05";
 }
