@@ -8,6 +8,8 @@
     flags = [
       "--update-input"
       "nixpkgs"
+      "--update-input"
+      "nixos-unstable"
       "-L" # print build logs
     ];
     dates = "02:00";
