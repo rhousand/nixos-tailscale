@@ -30,12 +30,13 @@
     nixpkgs,
     nixos-unstable,
     ...
-  }: let
+  }@inputs : let
     lib = nixpkgs.lib;
   in {
     nixosConfigurations = {
       ts-sn-test1 = lib.nixosSystem {
         system = "x86_64-linux";
+        specialArgs = { inherit inputs; };
         modules = let
           gladstoneArgs = {
             # tsAuthKey should not be created as a reusable key in Tailscale
@@ -45,6 +46,7 @@
           };
         in [
           ./configuration.nix
+          ./services/maintenance.nix
           /*
           Pass gladstoneArgs to the subnet-router.nix config.
             Remember to add gladstoneArgs to the the top lib import of the module.
@@ -82,6 +84,7 @@
       };
       ts-sn-test2 = lib.nixosSystem {
         system = "x86_64-linux";
+        specialArgs = { inherit inputs; };
         modules = let
           gladstoneArgs = {
             tsAuthKey = "tskey-auth-kDhHtSrqTn11CNTRL-ZhpWoi6KCe51A1ZqTBo8e5eisT83iEbz";
@@ -90,6 +93,7 @@
           };
         in [
           ./configuration.nix
+          ./services/maintenance.nix
           ({
             config,
             pkgs,
@@ -121,6 +125,7 @@
       };
       ts-sn-stage1 = lib.nixosSystem {
         system = "x86_64-linux";
+        specialArgs = { inherit inputs; };
         modules = let
           gladstoneArgs = {
             tsAuthKey = "tskey-auth-krviUjVvbQ11CNTRL-9p9YANcX7BQKnvXMnZm8BQQA6UZKUWo7P";
@@ -129,6 +134,7 @@
           };
         in [
           ./configuration.nix
+          ./services/maintenance.nix
           ({
             config,
             pkgs,
