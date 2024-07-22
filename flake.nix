@@ -30,13 +30,13 @@
     nixpkgs,
     nixos-unstable,
     ...
-  }@inputs : let
+  } @ inputs: let
     lib = nixpkgs.lib;
   in {
     nixosConfigurations = {
       ts-sn-test1 = lib.nixosSystem {
         system = "x86_64-linux";
-        specialArgs = { inherit inputs; };
+        specialArgs = {inherit inputs;};
         modules = let
           gladstoneArgs = {
             # tsAuthKey should not be created as a reusable key in Tailscale
@@ -84,7 +84,7 @@
       };
       ts-sn-test2 = lib.nixosSystem {
         system = "x86_64-linux";
-        specialArgs = { inherit inputs; };
+        specialArgs = {inherit inputs;};
         modules = let
           gladstoneArgs = {
             tsAuthKey = "tskey-auth-kDhHtSrqTn11CNTRL-ZhpWoi6KCe51A1ZqTBo8e5eisT83iEbz";
@@ -125,7 +125,7 @@
       };
       ts-sn-stage1 = lib.nixosSystem {
         system = "x86_64-linux";
-        specialArgs = { inherit inputs; };
+        specialArgs = {inherit inputs;};
         modules = let
           gladstoneArgs = {
             tsAuthKey = "tskey-auth-krviUjVvbQ11CNTRL-9p9YANcX7BQKnvXMnZm8BQQA6UZKUWo7P";
