@@ -8,7 +8,7 @@
   services.tailscale = {
     enable = true;
     package = pkgs.unstable.tailscale;
-    useRoutingFeatures = "server";
+    useRoutingFeatures = "none";
   };
 
   # create a oneshot job to authenticate to Tailscale
