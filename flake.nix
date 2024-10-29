@@ -193,7 +193,7 @@
         specialArgs = {inherit inputs;};
         modules = let
             gladstoneArgs = {
-              tsAuthKey = builtins.getEnv "TS_AUTH_KEY"
+              tsAuthKey = builtins.getEnv "TS_AUTH_KEY";
             };
         in [
           ./configuration.nix
