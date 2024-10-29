@@ -194,7 +194,7 @@
         modules = let
             gladstoneArgs = {
               tsAuthKey = builtins.getEnv "TS_AUTH_KEY"
-            }
+            };
         in [
           ./configuration.nix
           ./services/maintenance.nix
