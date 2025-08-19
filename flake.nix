@@ -100,7 +100,7 @@
         specialArgs = {inherit inputs;};
         modules = let
           gladstoneArgs = {
-            tsAuthKey = "tskey-auth-kDhHtSrqTn11CNTRL-ZhpWoi6KCe51A1ZqTBo8e5eisT83iEbz";
+            tsAuthKey = "tskey-auth-kSM7o3jbzx11CNTRL-xfsxNThM6h3Tg4NtsaMKg3TVGzKaLh9M";
             tsAdvertiseTags = "tag:rds-nonprod";
             hostName = "ts-sn-test12";
           };
