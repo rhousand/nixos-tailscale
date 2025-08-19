@@ -29,13 +29,13 @@
       sleep 2
 
       # check if we are already authenticated to tailscale
-      status="$(${tailscale}/bin/tailscale status --json | ${jq}/bin/jq -r .BackendState)"
+      status="$(${unstable.tailscale}/bin/tailscale status --json | ${jq}/bin/jq -r .BackendState)"
       if [ $status = "Running" ]; then # if so, then do nothing
         exit 0
       fi
 
       # otherwise authenticate with tailscale
-      ${tailscale}/bin/tailscale up --ssh --advertise-connector --advertise-tags=${gladstoneArgs.tsAdvertiseTags} --authkey ${gladstoneArgs.tsAuthKey}
+      ${unstable.tailscale}/bin/tailscale up --ssh --advertise-connector --advertise-tags=${gladstoneArgs.tsAdvertiseTags} --authkey ${gladstoneArgs.tsAuthKey}
 
     '';
   };
