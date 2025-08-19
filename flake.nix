@@ -53,7 +53,7 @@
         modules = let
           gladstoneArgs = {
             # tsAuthKey should not be created as a reusable key in Tailscale
-            tsAuthKey = "tskey-auth-k5kdPrRCu621CNTRL-42vWwq1Emc2Ze4Pph7Qad23awwCR5YzVd";
+            tsAuthKey = "tskey-auth-kZR71k3Lon11CNTRL-QSBSDUM1rjKB9iiBdSEfkKSnX5q5EaXf";
             tsAdvertiseTags = "tag:snowflake";
             hostName = "ts-sn-test11";
           };
