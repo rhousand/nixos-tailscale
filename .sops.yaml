@@ -1,9 +1,0 @@
-keys:
-  - &admin_rhousand age1dh999yshvxsxtr0u56ff5dylfgsvh63ycs5aeu8fq6dtxru5g4hs7qvum5
-  - &host_ts-sn-test age1fkh0c0f50rrsjlpvz2lzkqaq69xgt32sef9r2x9xs9787q40796qpw6aaa
-creation_rules:
-  - path_regex: secrets/[^/]+\.(yaml|json|env|ini)$
-    key_groups:
-    - age:
-      - *admin_rhousand
-      - *host_ts-sn-test
