@@ -50,8 +50,10 @@ ts-sn-test1 = lib.nixosSystem {
 #### Deployment
 
 ```bash
+# run all commands as root or u
+mkdir -p /root/.config/sops/age
 # Deploy to the target host
-sudo nixos-rebuild switch --flake .#ts-sn-test1
+nixos-rebuild switch --flake .#ts-sn-test1
 ```
 
 ### 2. Graylog Logging Server
