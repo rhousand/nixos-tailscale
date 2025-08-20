@@ -8,6 +8,8 @@
     # Package sets
     nixpkgs.url = "nixpkgs/nixos-25.05";
     nixos-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    sops-nix.url = "github:Mic92/sops-nix";
+    sops-nix.inputs.nixpkgs.follows = "nixpkgs";
     #home-manager.url = "github:nix-community/home-manager-24.05";
     #home-manager.inputs.nixpkgs.follows = "nixpkgs";
   };
@@ -29,6 +31,7 @@
     self,
     nixpkgs,
     nixos-unstable,
+    sops-nix,
     ...
   } @ inputs: let
     lib = nixpkgs.lib;
@@ -59,6 +62,7 @@
           };
         in [
           ./configuration.nix
+          sops-nix.nixosModules.sops
           ./services/maintenance.nix
           /*
           Pass gladstoneArgs to the subnet-router.nix config.
@@ -106,6 +110,7 @@
           };
         in [
           ./configuration.nix
+          sops-nix.nixosModules.sops
           ./services/maintenance.nix
           ({
             config,
@@ -147,6 +152,7 @@
           };
         in [
           ./configuration.nix
+          sops-nix.nixosModules.sops
           ./services/maintenance.nix
           ({
             config,
