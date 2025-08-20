@@ -1,6 +1,6 @@
 let
   rhousand = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILEwR5cCd9w3xIcdVfOrISCnsdeIW1tPlPAv1bE/z/On";
-  root-ts-sn = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO/RjZ4o4z265/nTQtswrVCNEsg3eR5v9qXi8Qq84CKe";
+  root-ts-sn = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHlqxg6xLWiuR4w+sZ0+6vPulQq0GBKExjZnTvnxkTcM";
   users = [rhousand root-ts-sn];
 
   rhlaptop = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEMuMvlwiXCgccwm+VTQlMSbL0vEvPtMrKpc022AKYf3";
