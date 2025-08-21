@@ -8,7 +8,7 @@
     # Package sets
     nixpkgs.url = "nixpkgs/nixos-25.05";
     nixos-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
-    genix.url = "github:ryantm/agenix";
+    agenix.url = "github:ryantm/agenix";
     agenix.inputs.nixpkgs.follows = "nixpkgs";
     #home-manager.url = "github:nix-community/home-manager-24.05";
     #home-manager.inputs.nixpkgs.follows = "nixpkgs";
@@ -31,6 +31,7 @@
     self,
     nixpkgs,
     nixos-unstable,
+    agenix,
     ...
   } @ inputs: let
     lib = nixpkgs.lib;
@@ -58,10 +59,12 @@
             tsAuthKey = "tskey-auth-kLUkmDsK8r11CNTRL-BhmE6jstFW42VxKLxe9kV4vEiCTiApKU4";
             tsAdvertiseTags = "tag:snowflake";
             hostName = "ts-sn-test11";
+            tsKeyAgeFile = "secrets/ts-sn-test11-tskey.age";
           };
         in [
           ./configuration.nix
           ./services/maintenance.nix
+          ./security/agenix.nix
           /*
           Pass gladstoneArgs to the subnet-router.nix config.
             Remember to add gladstoneArgs to the the top lib import of the module.
