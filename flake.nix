@@ -64,13 +64,16 @@
         in [
           ./configuration.nix
           ./services/maintenance.nix
-          {
-            _module.args = {
-              inherit (config._module.args) inputs;
-              gladstoneArgs = gladstoneArgs;
-            };
-            imports = [ ./security/agenix.nix ];
-          }
+          ({
+            config,
+            pkgs,
+            lib,
+            ...
+          }: {
+            imports = [
+              (import ./security/agenix.nix { inherit config pkgs lib inputs gladstoneArgs; })
+            ];
+          })
           /*
           Pass gladstoneArgs to the subnet-router.nix config.
             Remember to add gladstoneArgs to the the top lib import of the module.
@@ -119,13 +122,16 @@
         in [
           ./configuration.nix
           ./services/maintenance.nix
-          {
-            _module.args = {
-              inherit (config._module.args) inputs;
-              gladstoneArgs = gladstoneArgs;
-            };
-            imports = [ ./security/agenix.nix ];
-          }
+          ({
+            config,
+            pkgs,
+            lib,
+            ...
+          }: {
+            imports = [
+              (import ./security/agenix.nix { inherit config pkgs lib inputs gladstoneArgs; })
+            ];
+          })
           ({
             config,
             pkgs,

@@ -1,8 +1,5 @@
-{ config, pkgs, inputs, ... }:
+{ config, pkgs, lib, inputs, gladstoneArgs, ... }:
 
-let
-  gladstoneArgs = config._module.args.gladstoneArgs;
-in
 {
   imports = [
     inputs.agenix.nixosModules.default
