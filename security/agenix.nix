@@ -1,9 +1,8 @@
-{
-  pkgs,
-  config,
-  gladstoneArgs,
-  ...
-}: {
+{ config, pkgs, ... }:
+
+let
+  gladstoneArgs = config._module.args.gladstoneArgs;
+in {
   age = {
     age.identityPaths = [ 
         "/root/.config/age/"
