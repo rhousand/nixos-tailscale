@@ -161,6 +161,57 @@
           })
         ];
       };
+      ts-sn-stage1 = lib.nixosSystem {
+        system = "aarch64-linux";
+        specialArgs = {inherit inputs;};
+        modules = let
+          gladstoneArgs = {
+            tsAdvertiseTags = "tag:snowflake,tag:rds-stage";
+            hostName = "ts-sn-stage1";
+            tsKeyAgeFile = "secrets/ts-sn-stage1-tskey.age";
+          };
+        in [
+          ./configuration.nix
+          ./services/maintenance.nix
+          ({
+            config,
+            pkgs,
+            lib,
+            ...
+          }: {
+            imports = [
+              (import ./security/agenix.nix { inherit config pkgs lib inputs gladstoneArgs; })
+            ];
+          })
+          ({
+            config,
+            pkgs,
+            lib,
+            ...
+          }: {
+            imports = [
+              (import ./services/tailscale/subnet-router.nix {inherit config pkgs lib gladstoneArgs;})
+            ];
+          })
+
+          ({
+            pkgs,
+            config,
+            ...
+          }: {
+            nixpkgs = {
+              overlays = [
+                (self: super: {
+                  unstable = import nixos-unstable {
+                    system = "aarch64-linux";
+                    config.allowUnfree = true;
+                  };
+                })
+              ];
+            };
+          })
+        ];
+      };
       ts-sn-stage11 = lib.nixosSystem {
         system = "aarch64-linux";
         specialArgs = {inherit inputs;};
