@@ -56,7 +56,7 @@
         modules = let
           gladstoneArgs = {
             # tsAuthKey should not be created as a reusable key in Tailscale
-            tsAuthKey = "tskey-auth-kLUkmDsK8r11CNTRL-BhmE6jstFW42VxKLxe9kV4vEiCTiApKU4";
+            #tsAuthKey = "tskey-auth-kLUkmDsK8r11CNTRL-BhmE6jstFW42VxKLxe9kV4vEiCTiApKU4";
             tsAdvertiseTags = "tag:snowflake";
             hostName = "ts-sn-test11";
             tsKeyAgeFile = "secrets/ts-sn-test11-tskey.age";
@@ -105,13 +105,15 @@
         specialArgs = {inherit inputs;};
         modules = let
           gladstoneArgs = {
-            tsAuthKey = "tskey-auth-kSM7o3jbzx11CNTRL-xfsxNThM6h3Tg4NtsaMKg3TVGzKaLh9M";
+            #tsAuthKey = "tskey-auth-kSM7o3jbzx11CNTRL-xfsxNThM6h3Tg4NtsaMKg3TVGzKaLh9M";
             tsAdvertiseTags = "tag:rds-nonprod";
             hostName = "ts-sn-test12";
+            tsKeyAgeFile = "secrets/ts-sn-test12-tskey.age";
           };
         in [
           ./configuration.nix
           ./services/maintenance.nix
+          ./security/agenix.nix
           ({
             config,
             pkgs,
