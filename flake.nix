@@ -65,7 +65,10 @@
           ./configuration.nix
           ./services/maintenance.nix
           {
-            _module.args.gladstoneArgs = gladstoneArgs;
+            _module.args = {
+              inherit (config._module.args) inputs;
+              gladstoneArgs = gladstoneArgs;
+            };
             imports = [ ./security/agenix.nix ];
           }
           /*
@@ -117,7 +120,10 @@
           ./configuration.nix
           ./services/maintenance.nix
           {
-            _module.args.gladstoneArgs = gladstoneArgs;
+            _module.args = {
+              inherit (config._module.args) inputs;
+              gladstoneArgs = gladstoneArgs;
+            };
             imports = [ ./security/agenix.nix ];
           }
           ({
