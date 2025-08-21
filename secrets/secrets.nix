@@ -7,7 +7,7 @@ let
   ts-sn-test11 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOWGAHke7NflnNCYXQKXe8wE9rDJrCV3BV7AWia2PqFZ";
   ts-sn-test12 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILGaoMvul1XuY+OWaGTYEAb6sXztxtja3lvQ7tfCF7qy";
   ts-sn-stage1 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPd9yN8U+r1+A+EeCJiYjAmWa2Dt3MnXJSyuToZwQNwK";
-  ts-sn-stage11 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFwzBmxvHwswxNp0ntDXX7wbQbGyN2hU8T2l2iKBMVIe";
+  ts-sn-stage11 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICgGGmuU+CzdM1J1mo5Ic34GpxvHYn49MV6I9OIMR2pP";
   systems = [rhlaptop ts-sn-test11 ts-sn-test12 ts-sn-stage1 ts-sn-stage11 ];
 in {
   "ts-sn-test11-tskey.age".publicKeys = users ++ systems;

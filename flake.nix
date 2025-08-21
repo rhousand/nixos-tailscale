@@ -217,13 +217,23 @@
         specialArgs = {inherit inputs;};
         modules = let
           gladstoneArgs = {
-            tsAuthKey = "tskey-auth-krviUjVvbQ11CNTRL-9p9YANcX7BQKnvXMnZm8BQQA6UZKUWo7P";
             tsAdvertiseTags = "tag:snowflake,tag:rds-stage";
             hostName = "ts-sn-stage11";
+            tsKeyAgeFile = "secrets/ts-sn-stage11-tskey.age";
           };
         in [
           ./configuration.nix
           ./services/maintenance.nix
+          ({
+            config,
+            pkgs,
+            lib,
+            ...
+          }: {
+            imports = [
+              (import ./security/agenix.nix { inherit config pkgs lib inputs gladstoneArgs; })
+            ];
+          })
           ({
             config,
             pkgs,
