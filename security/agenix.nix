@@ -6,8 +6,8 @@
   ];
 
   age.identityPaths = [
-    "/root/.config/age/"
-    "/root/.ssh/"
+    "/etc/ssh/ssh_host_ed25519_key"
+    "/root/.ssh/id_ed25519"
   ];
 
   age.secrets.tsKeyAge = {
