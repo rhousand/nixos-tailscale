@@ -5,6 +5,8 @@
 }: {
   imports = ["${modulesPath}/virtualisation/amazon-image.nix"];
 
+  ec2.efi = true;
+  
   # By nix purests flakes are experimental however they have been stable for years. To make nix commands shorter we tell nix to allow flakes below:
   nix.settings.experimental-features = ["nix-command" "flakes"];
 
@@ -14,5 +16,5 @@
     unstable.tailscale
     git
   ];
-  system.stateVersion = "24.05";
+  system.stateVersion = "25.05";
 }
