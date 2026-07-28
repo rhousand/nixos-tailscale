@@ -464,6 +464,68 @@
           })
         ];
       };
+      #  __  __             _ _
+      # |  \/  | ___  _ __ (_) |_ ___  _ __
+      # | |\/| |/ _ \| '_ \| | __/ _ \| '__|
+      # | |  | | (_) | | | | | || (_) | |
+      # |_|  |_|\___/|_| |_|_|\__\___/|_|
+      #
+      # Prometheus + Grafana monitor host (t4g.small, aarch64). Scrapes the fleet's
+      # node_exporters over the tailnet. Auth key via agenix like the subnet routers.
+      # Device name ts-mon1 → Grafana at ts-mon1.tail21a653.ts.net:3000.
+      ts-mon1 = lib.nixosSystem {
+        system = "aarch64-linux";
+        specialArgs = {inherit inputs;};
+        modules = let
+          gladstoneArgs = {
+            tsAdvertiseTags = "tag:monitoring";
+            hostName = "ts-mon1";
+            tsKeyAgeFile = "secrets/ts-mon1-tskey.age";
+          };
+        in [
+          ./configuration.nix
+          ./services/maintenance.nix
+          ({
+            config,
+            pkgs,
+            lib,
+            ...
+          }: {
+            imports = [
+              (import ./security/agenix.nix { inherit config pkgs lib inputs gladstoneArgs; })
+            ];
+          })
+          ({
+            config,
+            pkgs,
+            lib,
+            ...
+          }: {
+            imports = [
+              (import ./services/tailscale/monitor.nix {inherit config pkgs lib gladstoneArgs;})
+              (import ./services/monitoring/node-exporter.nix {inherit config pkgs lib gladstoneArgs;})
+              (import ./services/monitoring/prometheus-grafana.nix {inherit config pkgs lib gladstoneArgs;})
+            ];
+          })
+
+          ({
+            pkgs,
+            config,
+            ...
+          }: {
+            nixpkgs = {
+              overlays = [
+                (self: super: {
+                  unstable = import nixos-unstable {
+                    system = "aarch64-linux";
+                    config.allowUnfree = true;
+                  };
+                })
+              ];
+            };
+          })
+        ];
+      };
       graylog = lib.nixosSystem {
         system = "x86_64-linux";
         specialArgs = {inherit inputs;};

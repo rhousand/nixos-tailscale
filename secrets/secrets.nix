@@ -10,6 +10,10 @@ let
   ts-sn-stage11 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICgGGmuU+CzdM1J1mo5Ic34GpxvHYn49MV6I9OIMR2pP";
   systems = [rhlaptop ts-sn-test11 ts-sn-test12 ts-sn-stage1 ts-sn-stage11 ];
 
+  # Monitor host (ts-mon1). Own recipient set so the subnet-router tskeys above
+  # are not rekeyed to include it.
+  ts-mon1 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICQc55TnzBPLT5XCfB6sNq3D53UF7ohOO4pIVog3skaG";
+
   # Build server (nixos-builder-x84-64-linux) recipient set for ts-buildserver.age.
   # Kept distinct so the tskey secrets above are not rekeyed. host-buildserver is
   # the builder's SSH host key (decrypts at runtime).
@@ -25,4 +29,5 @@ in {
   "ts-sn-stage11-tskey.age".publicKeys = users ++ systems;
   "ts-sn-stage1-tskey.age".publicKeys = users ++ systems;
   "ts-buildserver.age".publicKeys = buildserverUsers ++ buildserverSystems;
+  "ts-mon1-tskey.age".publicKeys = users ++ [ ts-mon1 ];
 }
