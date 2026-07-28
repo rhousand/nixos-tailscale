@@ -5,6 +5,8 @@
 }: {
   imports = ["${modulesPath}/virtualisation/amazon-image.nix"];
 
+  boot.loader.grub.configurationLimit = 2;
+  boot.loader.systemd-boot.configurationLimit = 2;
   ec2.efi = true;
   
   # By nix purests flakes are experimental however they have been stable for years. To make nix commands shorter we tell nix to allow flakes below:
