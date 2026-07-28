@@ -24,10 +24,28 @@
         }];
       }
 
-      # --- STAGED: enable once clients run node_exporter -----------------------
-      # EC2 auto-discovery. New instances with node_exporter + a matching Name
-      # tag register themselves. Needs the IAM role (ec2:DescribeInstances) on
-      # this host and MagicDNS resolving <Name-tag>.tail21a653.ts.net.
+      # Static tailnet targets addressed by MagicDNS name. Add a host here once
+      # it runs node_exporter and the ACL permits tag:monitoring -> it on tcp:9100.
+      {
+        job_name = "tailnet-static";
+        static_configs = [{
+          targets = [
+            "nixos-builder-x84-64-linux.tail21a653.ts.net:9100"
+            # "ts-sn-test11.tail21a653.ts.net:9100"   # add when its exporter is deployed
+          ];
+        }];
+        relabel_configs = [
+          # strip the domain so Grafana shows a short instance name
+          { source_labels = [ "__address__" ];
+            regex = "([^.]+)\\..*";
+            replacement = "\${1}";
+            target_label = "instance"; }
+        ];
+      }
+
+      # --- STAGED: EC2 auto-discovery. Needs the IAM role (ec2:DescribeInstances)
+      # on this host + MagicDNS resolving <Name-tag>.tail21a653.ts.net. Enable to
+      # auto-register the subnet routers instead of listing them statically.
       # {
       #   job_name = "ec2-nodes";
       #   ec2_sd_configs = [{ region = "us-east-1"; port = 9100; }];
@@ -35,24 +53,9 @@
       #     { source_labels = [ "__meta_ec2_tag_Name" ]; target_label = "instance"; }
       #     { source_labels = [ "__meta_ec2_instance_id" ]; target_label = "instance_id"; }
       #     { source_labels = [ "__meta_ec2_instance_state" ]; regex = "running"; action = "keep"; }
-      #     # Resolve over the tailnet by MagicDNS (EC2 SD only exposes AWS IPs).
       #     { source_labels = [ "__meta_ec2_tag_Name" ];
       #       replacement = "\${1}.tail21a653.ts.net:9100";
       #       target_label = "__address__"; }
-      #   ];
-      # }
-      #
-      # ts-sn-test11 is scraped statically (not via EC2 SD) per request.
-      # {
-      #   job_name = "tailnet-static";
-      #   static_configs = [{
-      #     targets = [ "ts-sn-test11.tail21a653.ts.net:9100" ];
-      #   }];
-      #   relabel_configs = [
-      #     { source_labels = [ "__address__" ];
-      #       regex = "([^.]+)\\..*";
-      #       replacement = "\${1}";
-      #       target_label = "instance"; }
       #   ];
       # }
       # ------------------------------------------------------------------------

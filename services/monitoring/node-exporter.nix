@@ -1,13 +1,11 @@
 { ... }: {
-  # Reusable per-host exporter. Import on the monitor host (self-scrape) and,
-  # later, on every client you want scraped.
+  # Reusable per-host exporter. Import on the monitor host (self-scrape) and
+  # on every client you want scraped.
   #
-  # Reachable over the tailnet ONLY. Every host in this repo sets
-  #   networking.firewall.trustedInterfaces = ["tailscale0"];
-  # so :9100 is open on tailscale0 and blocked on the public interface (public
-  # allows only 22 + the tailscale UDP port). openFirewall stays false so we
-  # never punch 9100 public. The 0.0.0.0 bind is safe because the host firewall
-  # gates the public side.
+  # Reachable over the tailnet ONLY. openFirewall stays false so we never punch
+  # 9100 public; instead we open it explicitly on tailscale0 below. The 0.0.0.0
+  # bind is safe because the host firewall gates the public side (public allows
+  # only 22 + the tailscale UDP port).
   services.prometheus.exporters.node = {
     enable = true;
     enabledCollectors = [ "systemd" ];
@@ -15,4 +13,9 @@
     listenAddress = "0.0.0.0";
     openFirewall = false;
   };
+
+  # Explicit tailnet-only opening. Self-contained so this module works on hosts
+  # that do NOT set trustedInterfaces=["tailscale0"] (e.g. the build server).
+  # On hosts that do trust tailscale0 this is redundant but harmless.
+  networking.firewall.interfaces."tailscale0".allowedTCPPorts = [ 9100 ];
 }
