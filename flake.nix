@@ -10,6 +10,7 @@
     nixos-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     agenix.url = "github:ryantm/agenix";
     agenix.inputs.nixpkgs.follows = "nixpkgs";
+    harmonia.url = "github:nix-community/harmonia";
     #home-manager.url = "github:nix-community/home-manager-24.05";
     #home-manager.inputs.nixpkgs.follows = "nixpkgs";
   };
@@ -501,6 +502,30 @@
               ];
             };
           })
+        ];
+      };
+      #  ____        _ _     _
+      # | __ ) _   _(_) | __| | ___ _ __
+      # |  _ \| | | | | |/ _` |/ _ \ '__|
+      # | |_) | |_| | | | (_| |  __/ |
+      # |____/ \__,_|_|_|\__,_|\___|_|
+      #
+      # x86_64 remote builder + harmonia binary cache. Built from nixos-unstable to
+      # mirror its existing base; stateVersion pinned to 24.11 in configuration.nix.
+      nixos-builder-x84-64-linux = nixos-unstable.lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = {
+          inherit inputs;
+          tryonArgs = {
+            tsAdvertiseTags = "tag:x86-builder";
+          };
+        };
+        modules = [
+          ./hosts/nixos-builder/configuration.nix
+          ./hosts/nixos-builder/nixos.nix
+          ./hosts/nixos-builder/tailscale.nix
+          ./hosts/nixos-builder/aws-monitoring.nix
+          ./hosts/nixos-builder/harmonia.nix
         ];
       };
     };
