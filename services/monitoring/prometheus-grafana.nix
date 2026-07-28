@@ -31,7 +31,8 @@
         static_configs = [{
           targets = [
             "nixos-builder-x84-64-linux.tail21a653.ts.net:9100"
-            # "ts-sn-test11.tail21a653.ts.net:9100"   # add when its exporter is deployed
+            "ts-sn-test11.tail21a653.ts.net:9100"
+            "ts-sn-test12.tail21a653.ts.net:9100"
           ];
         }];
         relabel_configs = [
