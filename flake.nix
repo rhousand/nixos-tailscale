@@ -243,6 +243,7 @@
           }: {
             imports = [
               (import ./services/tailscale/subnet-router.nix {inherit config pkgs lib gladstoneArgs;})
+              (import ./services/monitoring/node-exporter.nix {inherit config pkgs lib gladstoneArgs;})
             ];
           })
 
