@@ -72,9 +72,12 @@
   services.grafana = {
     enable = true;
     settings.server = {
-      http_addr = "0.0.0.0"; # tailnet-reachable; public side closed by host firewall
+      # Loopback only — Tailscale serve (grafana-sso.nix) terminates TLS and
+      # proxies to this. Nothing reaches :3000 directly over the tailnet.
+      http_addr = "127.0.0.1";
       http_port = 3000;
       domain = "${gladstoneArgs.hostName}.tail21a653.ts.net";
+      root_url = "https://${gladstoneArgs.hostName}.tail21a653.ts.net/";
     };
 
     # Auto-provision the Prometheus datasource.
