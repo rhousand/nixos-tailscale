@@ -31,4 +31,5 @@ in {
   "ts-buildserver.age".publicKeys = buildserverUsers ++ buildserverSystems;
   "ts-mon1-tskey.age".publicKeys = users ++ [ ts-mon1 ];
   "grafana-oauth-env.age".publicKeys = users ++ [ ts-mon1 ];
+  "slack-webhook-url.age".publicKeys = users ++ [ ts-mon1 ];
 }
