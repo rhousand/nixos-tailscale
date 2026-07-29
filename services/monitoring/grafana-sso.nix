@@ -14,6 +14,11 @@ in {
   # OAuth needs HTTPS; TLS is terminated by `tailscale serve` below, so the
   # redirect URI is https://<fqdn>/login/azuread (no :3000).
   services.grafana.settings = {
+    # Hide the local username/password form — Entra is the only UI login.
+    # Break-glass: rebuild with this false, or reset the admin password on the
+    # box with `grafana-cli admin reset-admin-password`.
+    auth.disable_login_form = true;
+
     "auth.azuread" = {
       enabled = true;
       name = "Entra ID";
