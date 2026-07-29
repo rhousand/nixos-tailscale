@@ -15,7 +15,7 @@ buildGoModule rec {
     owner = "nerdswords";
     repo = "yet-another-cloudwatch-exporter";
     rev = "v${version}";
-    hash = lib.fakeHash; # TODO: replace after first build
+    hash = "sha256-3VMNLkzzwJX4ZhLihppjyBZDD/W+z5xLsMkZLUYHOF0=";
   };
 
   vendorHash = lib.fakeHash; # TODO: replace after second build
