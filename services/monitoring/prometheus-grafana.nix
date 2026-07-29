@@ -80,6 +80,9 @@
       root_url = "https://${gladstoneArgs.hostName}.tail21a653.ts.net/";
     };
 
+    # Render times in the viewer's browser timezone (server + Prometheus stay UTC).
+    settings.date_formats.default_timezone = "browser";
+
     # Auto-provision the Prometheus datasource.
     provision.datasources.settings.datasources = [{
       name = "Prometheus";
