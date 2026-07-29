@@ -18,7 +18,7 @@ buildGoModule rec {
     hash = "sha256-3VMNLkzzwJX4ZhLihppjyBZDD/W+z5xLsMkZLUYHOF0=";
   };
 
-  vendorHash = lib.fakeHash; # TODO: replace after second build
+  vendorHash = "sha256-0wHvXiYQGYU89SSOEBxiSC0CLGwOfN2Dzn8WeEBLYFk=";
 
   subPackages = [ "cmd/yace" ]; # binary -> "yace"; verify path for the tag
 
