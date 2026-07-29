@@ -87,6 +87,7 @@
     provision.datasources.settings.datasources = [{
       name = "Prometheus";
       type = "prometheus";
+      uid = "prometheus"; # stable uid so provisioned dashboards can reference it
       access = "proxy";
       url = "http://127.0.0.1:9090";
       isDefault = true;
