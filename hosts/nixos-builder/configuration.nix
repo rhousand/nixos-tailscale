@@ -28,6 +28,16 @@
 
   nix.settings.experimental-features = ["nix-command" "flakes"];
 
+  # Advertise features so clients can offload NixOS VM tests here. `uid-range`
+  # is required by the container/VM test driver and isn't in the default set.
+  nix.settings.system-features = [
+    "nixos-test"
+    "benchmark"
+    "big-parallel"
+    "kvm"
+    "uid-range"
+  ];
+
   # Larger download buffer for pulling big closures during remote builds.
   nix.extraOptions = ''
     download-buffer-size = 10485760
