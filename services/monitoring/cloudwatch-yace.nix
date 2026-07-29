@@ -7,6 +7,10 @@ let
     apiVersion: v1alpha1
     sts-region: us-east-1
     discovery:
+      # Expose the instance Name tag as a `tag_Name` label so dashboards graph
+      # by name instead of instance id.
+      exportedTagsOnMetrics:
+        AWS/EC2: [Name]
       jobs:
         - type: AWS/EC2
           regions: [us-east-1]
@@ -61,4 +65,12 @@ in {
     job_name = "cloudwatch";
     static_configs = [{ targets = [ "127.0.0.1:5000" ]; }];
   }];
+
+  # Provision the CPU-credit / EBS-burst dashboard (declarative, no clicking).
+  services.grafana.provision.dashboards.settings.providers = [{
+    name = "yace";
+    options.path = "/etc/grafana-dashboards";
+  }];
+  environment.etc."grafana-dashboards/yace-cpu-credits.json".source =
+    ../../dashboards/yace-cpu-credits.json;
 }

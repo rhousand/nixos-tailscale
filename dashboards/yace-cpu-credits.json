@@ -1,0 +1,96 @@
+{
+  "uid": "yace-cpu-credits",
+  "title": "AWS CPU Credits & EBS Burst (YACE)",
+  "tags": ["aws", "cloudwatch", "yace"],
+  "timezone": "",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5m",
+  "time": { "from": "now-24h", "to": "now" },
+  "templating": { "list": [] },
+  "annotations": { "list": [] },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "EC2 CPU Credit Balance",
+      "description": "Low balance on a t-class instance = imminent CPU throttle. Warning under 50.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "aws_ec2_cpucreditbalance_average",
+          "legendFormat": "{{tag_Name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": { "drawStyle": "line", "fillOpacity": 5 },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 50 },
+              { "color": "green", "value": 100 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull", "min"] } }
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "EC2 CPU Credit Usage",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 9 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "aws_ec2_cpucreditusage_average",
+          "legendFormat": "{{tag_Name}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "drawStyle": "line", "fillOpacity": 5 } }, "overrides": [] },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } }
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "EBS Burst Balance (%)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 9 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "aws_ebs_burstbalance_average",
+          "legendFormat": "{{dimension_VolumeId}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "custom": { "drawStyle": "line", "fillOpacity": 5 },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 20 },
+              { "color": "green", "value": 50 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } }
+    }
+  ]
+}
