@@ -8,7 +8,7 @@
           # ---- Disk ----
           - alert: DiskSpaceLow
             expr: 100 * (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs"}
-                         / node_filesystem_size_bytes) < 15
+                         / node_filesystem_size_bytes) < 95
             for: 10m
             labels: { severity: warning }
             annotations:
