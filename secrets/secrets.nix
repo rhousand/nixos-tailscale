@@ -30,4 +30,5 @@ in {
   "ts-sn-stage1-tskey.age".publicKeys = users ++ systems;
   "ts-buildserver.age".publicKeys = buildserverUsers ++ buildserverSystems;
   "ts-mon1-tskey.age".publicKeys = users ++ [ ts-mon1 ];
+  "grafana-oauth-env.age".publicKeys = users ++ [ ts-mon1 ];
 }

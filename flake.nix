@@ -508,6 +508,7 @@
               (import ./services/tailscale/monitor.nix {inherit config pkgs lib gladstoneArgs;})
               (import ./services/monitoring/node-exporter.nix {inherit config pkgs lib gladstoneArgs;})
               (import ./services/monitoring/prometheus-grafana.nix {inherit config pkgs lib gladstoneArgs;})
+              (import ./services/monitoring/grafana-sso.nix {inherit config pkgs lib gladstoneArgs;})
             ];
           })
 
