@@ -11,6 +11,7 @@
       HostName nixos-builder-x84-64-linux.tail21a653.ts.net
       Port 8022
       IdentitiesOnly yes
+      StrictHostKeyChecking accept-new
     EOF
                 chmod 0600 /root/.ssh/config
   '';

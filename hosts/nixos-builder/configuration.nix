@@ -45,6 +45,7 @@
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHu2zDv8fKYjIOQCmFLMjct621bWuvqdvKqrHUBhNjdo root@graylogserver"
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHlqxg6xLWiuR4w+sZ0+6vPulQq0GBKExjZnTvnxkTcM root@ts-sn-test1"
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIODrG5WxerELKvcX3K3NNnc5z0r6t9+Nb+ayMf04c10o root@ts-sn-stage1"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJZNU40s+Q5p6/UeRkbk1sUv+RQmE9hBdK7wnKXXRIKz root@ts-mon1"
     ];
   };
 

@@ -1,6 +1,11 @@
 { config, pkgs, ... }:
 
 {
+  imports = [
+    # Prometheus node_exporter :9100, scraped by ts-mon1 over the tailnet.
+    ../../services/monitoring/node-exporter.nix
+  ];
+
   # Telegraf → CloudWatch host metrics.
   services.telegraf = {
     enable = true;
