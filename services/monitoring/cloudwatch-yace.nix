@@ -68,26 +68,30 @@ in {
 
   # Alert on low CPU-credit balance (t-class throttle risk). Routes through the
   # same Alertmanager -> Slack as the node rules (alertmanager-slack.nix).
-  # Absolute floors: near-zero balance = imminent throttling regardless of size.
-  services.prometheus.rules = [ ''
-    groups:
-      - name: aws-cloudwatch
-        rules:
-          - alert: CPUCreditBalanceLow
-            expr: aws_ec2_cpucredit_balance_average < 50
-            for: 15m
-            labels: { severity: warning }
-            annotations:
-              summary: "Low CPU credits on {{ $labels.tag_Name }}"
-              description: "{{ $value | printf \"%.0f\" }} credits left — throttle risk"
-          - alert: CPUCreditBalanceCritical
-            expr: aws_ec2_cpucredit_balance_average < 20
-            for: 5m
-            labels: { severity: critical }
-            annotations:
-              summary: "CRITICAL CPU credits on {{ $labels.tag_Name }}"
-              description: "{{ $value | printf \"%.0f\" }} credits left — throttling imminent"
-  '' ];
+  # Its own rule file (ruleFiles, not rules) so it isn't concatenated with the
+  # node rules into one YAML doc with two `groups:` keys. Absolute floors:
+  # near-zero balance = imminent throttling regardless of instance size.
+  services.prometheus.ruleFiles = [
+    (pkgs.writeText "yace-rules.yml" ''
+      groups:
+        - name: aws-cloudwatch
+          rules:
+            - alert: CPUCreditBalanceLow
+              expr: aws_ec2_cpucredit_balance_average < 50
+              for: 15m
+              labels: { severity: warning }
+              annotations:
+                summary: "Low CPU credits on {{ $labels.tag_Name }}"
+                description: "{{ $value | printf \"%.0f\" }} credits left — throttle risk"
+            - alert: CPUCreditBalanceCritical
+              expr: aws_ec2_cpucredit_balance_average < 20
+              for: 5m
+              labels: { severity: critical }
+              annotations:
+                summary: "CRITICAL CPU credits on {{ $labels.tag_Name }}"
+                description: "{{ $value | printf \"%.0f\" }} credits left — throttling imminent"
+    '')
+  ];
 
   # Provision the CPU-credit / EBS-burst dashboard (declarative, no clicking).
   services.grafana.provision.dashboards.settings.providers = [{
