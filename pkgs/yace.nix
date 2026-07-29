@@ -9,7 +9,7 @@
 # Then rebuild clean. Also confirm `subPackages`/mainProgram against the pinned tag.
 buildGoModule rec {
   pname = "yet-another-cloudwatch-exporter";
-  version = "0.61.3"; # check the latest release and pin it
+  version = "0.67.0";
 
   src = fetchFromGitHub {
     owner = "nerdswords";
