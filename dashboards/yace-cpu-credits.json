@@ -21,7 +21,7 @@
         {
           "refId": "A",
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "aws_ec2_cpucreditbalance_average",
+          "expr": "aws_ec2_cpucredit_balance_average",
           "legendFormat": "{{tag_Name}}"
         }
       ],
@@ -52,7 +52,7 @@
         {
           "refId": "A",
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "aws_ec2_cpucreditusage_average",
+          "expr": "aws_ec2_cpucredit_usage_average",
           "legendFormat": "{{tag_Name}}"
         }
       ],
@@ -69,7 +69,7 @@
         {
           "refId": "A",
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "aws_ebs_burstbalance_average",
+          "expr": "aws_ebs_burst_balance_average",
           "legendFormat": "{{dimension_VolumeId}}"
         }
       ],
