@@ -510,6 +510,7 @@
               (import ./services/monitoring/prometheus-grafana.nix {inherit config pkgs lib gladstoneArgs;})
               (import ./services/monitoring/grafana-sso.nix {inherit config pkgs lib gladstoneArgs;})
               (import ./services/monitoring/alertmanager-slack.nix {inherit config pkgs lib gladstoneArgs;})
+              (import ./services/monitoring/cloudwatch-yace.nix {inherit config pkgs lib gladstoneArgs;})
             ];
           })
 
