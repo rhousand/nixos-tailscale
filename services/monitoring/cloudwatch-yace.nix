@@ -29,8 +29,12 @@ in {
   # Build YACE from pkgs/yace.nix (not in nixpkgs). Merges with the other
   # overlays on this host.
   nixpkgs.overlays = [
-    (self: super: {
-      yace = super.callPackage ../../pkgs/yace.nix { };
+    (final: prev: {
+      # YACE v0.67 needs Go >= 1.25; 25.05's buildGoModule is on Go 1.24, so
+      # build it with the unstable overlay's newer toolchain.
+      yace = prev.callPackage ../../pkgs/yace.nix {
+        buildGoModule = final.unstable.buildGoModule;
+      };
     })
   ];
 
