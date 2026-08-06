@@ -12,9 +12,12 @@ buildGoModule rec {
   version = "0.67.0";
 
   src = fetchFromGitHub {
-    owner = "nerdswords";
+    # Repo transferred nerdswords -> prometheus-community. Pin the canonical org and
+    # the immutable commit for v0.67.0 (tags can move, redirects can break). Hash is
+    # unchanged: content verified identical across the transfer.
+    owner = "prometheus-community";
     repo = "yet-another-cloudwatch-exporter";
-    rev = "v${version}";
+    rev = "15fb369c3ffaa46d7e32ab3ce22578cd98444623"; # v${version}
     hash = "sha256-3VMNLkzzwJX4ZhLihppjyBZDD/W+z5xLsMkZLUYHOF0=";
   };
 
