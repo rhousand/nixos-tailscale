@@ -513,19 +513,34 @@
               (import ./services/monitoring/cloudwatch-yace.nix {inherit config pkgs lib gladstoneArgs;})
             ];
           })
+          # ts-mon1 only: 2 GiB t4g.small runs Nix eval locally each night. zram gives a
+          # compressed in-RAM swap and the 2 GiB disk swapfile is a backstop so an eval
+          # memory spike spills to swap instead of OOM-killing the rebuild.
+          ({ ... }: {
+            zramSwap.enable = true;
+            swapDevices = [
+              {
+                device = "/swapfile";
+                size = 2048; # MiB
+              }
+            ];
+          })
 
           ({
             pkgs,
             config,
             ...
           }: {
+            # Reuse nixos-unstable's already-evaluated package set instead of a second
+            # `import nixos-unstable {...}`, which instantiates a full second nixpkgs and
+            # roughly doubles nightly eval memory. ts-mon1 is a 2 GiB t4g.small that evals
+            # locally, so eval must stay lean. legacyPackages is pre-evaluated with
+            # allowUnfree = false; ts-mon1 only pulls free unstable pkgs (tailscale,
+            # buildGoModule), so no unfree flag is needed here.
             nixpkgs = {
               overlays = [
                 (self: super: {
-                  unstable = import nixos-unstable {
-                    system = "aarch64-linux";
-                    config.allowUnfree = true;
-                  };
+                  unstable = nixos-unstable.legacyPackages.${super.system};
                 })
               ];
             };
