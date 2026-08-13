@@ -61,8 +61,11 @@ in {
   # Prometheus scrapes it over loopback. IMPORTANT: the collector queries
   # Snowflake synchronously on each scrape (tens of seconds), so scrape slowly
   # with a generous timeout. Merges with scrapeConfigs in prometheus-grafana.nix.
+  # Job name must be "integrations/snowflake": the upstream mixin dashboards +
+  # alerts hard-filter every query on job="integrations/snowflake" (Grafana Cloud
+  # integration convention). A different job name leaves the dashboards empty.
   services.prometheus.scrapeConfigs = [{
-    job_name = "snowflake";
+    job_name = "integrations/snowflake";
     scrape_interval = "300s";
     scrape_timeout = "60s";
     static_configs = [{ targets = [ "127.0.0.1:9975" ]; }];
