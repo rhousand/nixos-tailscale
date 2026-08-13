@@ -1,10 +1,12 @@
 { config, pkgs, lib, gladstoneArgs, ... }:
 let
   # ---- Fill in your Snowflake connection details ----
-  account = "uiyvowa-tryon";            # account identifier, e.g. xy12345.us-east-1
-  username = "SRVC_PROMETHEUS_EXPORTER";       # the dedicated monitoring user
+  account = "LDB66807";                 # account LOCATOR (from SELECT CURRENT_ACCOUNT()).
+                                        # Key-pair JWT auth keys off the locator, not the
+                                        # org-account name. AWS_US_WEST_2 = no region suffix.
+  username = "SRVC_PROMETHOUT_EXPORTER";       # the dedicated monitoring user
   warehouse = "TF-WH_USER_SRVC_PROMETHEUS_EXPORTER";            # small XS warehouse for the queries
-  role = "TF-WH_USER_SRVC_PROMETHEUS_EXPORTER";      # least-priv role (IMPORTED PRIVILEGES on SNOWFLAKE)
+  role = "TF-ROLE_USER_SRVC_PROMETHEUS_EXPORTER";    # least-priv role (IMPORTED PRIVILEGES on SNOWFLAKE)
   # ---------------------------------------------------
 
   # Grafana dashboards + Prometheus alerts from the upstream monitoring mixin,
