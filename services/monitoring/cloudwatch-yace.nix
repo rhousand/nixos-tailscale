@@ -30,18 +30,6 @@ let
               statistics: [Average]
   '';
 in {
-  # Build YACE from pkgs/yace.nix (not in nixpkgs). Merges with the other
-  # overlays on this host.
-  nixpkgs.overlays = [
-    (final: prev: {
-      # YACE v0.67 needs Go >= 1.25; 25.05's buildGoModule is on Go 1.24, so
-      # build it with the unstable overlay's newer toolchain.
-      yace = prev.callPackage ../../pkgs/yace.nix {
-        buildGoModule = final.unstable.buildGoModule;
-      };
-    })
-  ];
-
   # Local-only exporter. Credentials come from the instance IAM role via IMDS,
   # so the role needs cloudwatch:GetMetricData, cloudwatch:ListMetrics,
   # tag:GetResources (extend the ts-mon1 instance role).
@@ -53,7 +41,7 @@ in {
     serviceConfig = {
       DynamicUser = true;
       Environment = "AWS_REGION=us-east-1";
-      ExecStart = "${pkgs.yace}/bin/yace --config.file=${yaceConfig} --listen-address=127.0.0.1:5000";
+      ExecStart = "${pkgs.unstable.yet-another-cloudwatch-exporter}/bin/yace --config.file=${yaceConfig} --listen-address=127.0.0.1:5000";
       Restart = "on-failure";
       RestartSec = 10;
     };
