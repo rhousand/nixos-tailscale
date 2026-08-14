@@ -22,10 +22,77 @@ let
     url = "${mixinBase}/dashboards_out/snowflake-data-ownership.json";
     hash = "sha256-+bYYKnRiMKiGG3mNJPI2Wz7x/RPkLVxb0tnDtUU+6ew=";
   };
-  snowflakeAlerts = pkgs.fetchurl {
-    url = "${mixinBase}/prometheus_alerts.yaml";
-    hash = "sha256-nT01rlmerOeXk/dyuFs8U36sl5yDSd7EpS7Fk3hrRsk=";
-  };
+  # Alert rules: adapted from the upstream mixin (mixin/prometheus_alerts.yaml)
+  # but with credit thresholds tuned to ts-mon1's observed burn (~10 compute
+  # credits/hr, ~0.26 cloud-services credits/hr as of 2026-08). The upstream
+  # defaults (4/5 compute, 0.8/1 services) sit below our normal usage and would
+  # alert constantly. Metrics are 24h trailing averages of credits/hr, so these
+  # catch sustained overspend, not single-query spikes. Re-tune after a couple
+  # weeks of data + a Snowsight cost cross-check. Also fixes the upstream
+  # copy-paste bug where the critical services alert was labelled "Compute".
+  snowflakeAlerts = pkgs.writeText "snowflake-alerts.yml" ''
+    groups:
+      - name: SnowflakeAlerts
+        rules:
+          - alert: SnowflakeWarnHighLoginFailures
+            annotations:
+              description: '{{ printf "%.2f" $value }}% of logins have failed on {{$labels.instance}}, above the 30% threshold.'
+              summary: Large Snowflake login failure rate.
+            expr: |
+              100 * sum by (job, instance) (last_over_time(snowflake_failed_login_rate{job="integrations/snowflake"}[1h])) / sum by (job, instance) (last_over_time(snowflake_login_rate{job="integrations/snowflake"}[1h]))
+              > 30
+            for: 5m
+            labels:
+              severity: warning
+          - alert: SnowflakeWarnHighComputeCreditUsage
+            annotations:
+              description: Compute credit usage is {{ printf "%.2f" $value }} credits/hr (24h avg) for {{$labels.instance}}, above the 15 credits/hr warning threshold.
+              summary: Snowflake compute credit usage is high.
+            expr: |
+              sum by (job, instance) (last_over_time(snowflake_used_compute_credits{job="integrations/snowflake"}[1h]))
+              > 15
+            for: 15m
+            labels:
+              severity: warning
+          - alert: SnowflakeCriticalHighComputeCreditUsage
+            annotations:
+              description: Compute credit usage is {{ printf "%.2f" $value }} credits/hr (24h avg) for {{$labels.instance}}, above the 20 credits/hr critical threshold.
+              summary: Snowflake compute credit usage is critically high.
+            expr: |
+              sum by (job, instance) (last_over_time(snowflake_used_compute_credits{job="integrations/snowflake"}[1h]))
+              > 20
+            for: 15m
+            labels:
+              severity: critical
+          - alert: SnowflakeWarnHighServiceCreditUsage
+            annotations:
+              description: Cloud services credit usage is {{ printf "%.2f" $value }} credits/hr (24h avg) for {{$labels.instance}}, above the 1 credit/hr warning threshold.
+              summary: Snowflake cloud services credit usage is high.
+            expr: |
+              sum by (job, instance) (last_over_time(snowflake_used_cloud_services_credits{job="integrations/snowflake"}[1h]))
+              > 1
+            for: 15m
+            labels:
+              severity: warning
+          - alert: SnowflakeCriticalHighServiceCreditUsage
+            annotations:
+              description: Cloud services credit usage is {{ printf "%.2f" $value }} credits/hr (24h avg) for {{$labels.instance}}, above the 2 credits/hr critical threshold.
+              summary: Snowflake cloud services credit usage is critically high.
+            expr: |
+              sum by (job, instance) (last_over_time(snowflake_used_cloud_services_credits{job="integrations/snowflake"}[1h]))
+              > 2
+            for: 15m
+            labels:
+              severity: critical
+          - alert: SnowflakeDown
+            annotations:
+              description: The Snowflake exporter failed to scrape one or more metrics for instance {{$labels.instance}}.
+              summary: Snowflake exporter failed to scrape.
+            expr: last_over_time(snowflake_up{job="integrations/snowflake"}[1h]) == 0
+            for: 5m
+            labels:
+              severity: warning
+  '';
 in {
   # RSA private key (unencrypted p8) for key-pair auth. Handed to the service via
   # systemd credentials below, so it stays readable only by the exporter even
