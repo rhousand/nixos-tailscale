@@ -5,6 +5,15 @@
 
 # Claude
 .claude/
+
+# Local-only working dirs (plans, notes, security audits)
+documentation/
+security/
+
+# Private keys (never commit — use agenix)
+*.p8
+*.pem
+*.key
 # Node artifact files
 node_modules/
 dist/

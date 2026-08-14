@@ -511,6 +511,7 @@
               (import ./services/monitoring/grafana-sso.nix {inherit config pkgs lib gladstoneArgs;})
               (import ./services/monitoring/alertmanager-slack.nix {inherit config pkgs lib gladstoneArgs;})
               (import ./services/monitoring/cloudwatch-yace.nix {inherit config pkgs lib gladstoneArgs;})
+              (import ./services/monitoring/snowflake-exporter.nix {inherit config pkgs lib gladstoneArgs;})
             ];
           })
           # ts-mon1 only: 2 GiB t4g.small runs Nix eval locally each night. zram gives a
