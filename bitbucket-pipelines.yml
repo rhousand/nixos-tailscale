@@ -18,13 +18,17 @@ pipelines:
               git diff --cached --quiet && echo "No changes to flake.lock" && exit 0
               git commit -m "chore: nix flake update $(date +%Y-%m-%d)"
               git push origin "$BRANCH_NAME"
+              export TOKEN=$(git config --get http.${BITBUCKET_GIT_HTTP_ORIGIN}.proxy | true)
+              export TOKEN=$(git remote get-url origin | grep -oP '(?<=x-token-auth:)[^@]+')
+              if [ -z "$TOKEN" ]; then export TOKEN="${BITBUCKET_TOKEN:-}"; fi
+              echo "Token available: $([ -n \"$TOKEN\" ] && echo yes || echo no)"
               echo "Creating PR..."
-              export PR_RESPONSE=$(curl -s -X POST -u "x-token-auth:${REPOSITORY_OAUTH_ACCESS_TOKEN}" -H "Content-Type:application/json" "https://api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_FULL_NAME}/pullrequests" -d "{\"title\":\"chore: nix flake update $(date +%Y-%m-%d)\",\"source\":{\"branch\":{\"name\":\"${BRANCH_NAME}\"}},\"destination\":{\"branch\":{\"name\":\"main\"}},\"close_source_branch\":true}")
+              export PR_RESPONSE=$(curl -s -X POST -H "Authorization: Bearer ${TOKEN}" -H "Content-Type:application/json" "https://api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_FULL_NAME}/pullrequests" -d "{\"title\":\"chore: nix flake update $(date +%Y-%m-%d)\",\"source\":{\"branch\":{\"name\":\"${BRANCH_NAME}\"}},\"destination\":{\"branch\":{\"name\":\"main\"}},\"close_source_branch\":true}")
               echo "PR API response: ${PR_RESPONSE}"
               export PR_ID=$(echo "$PR_RESPONSE" | grep -o '"id": [0-9]*' | head -1 | grep -o '[0-9]*')
               echo "Created PR #${PR_ID}"
               if [ -z "$PR_ID" ]; then echo "ERROR: Failed to create PR"; exit 1; fi
               echo "Merging PR #${PR_ID}..."
-              export MERGE_RESPONSE=$(curl -s -X POST -u "x-token-auth:${REPOSITORY_OAUTH_ACCESS_TOKEN}" -H "Content-Type:application/json" "https://api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_FULL_NAME}/pullrequests/${PR_ID}/merge" -d "{\"merge_strategy\":\"merge_commit\",\"close_source_branch\":true}")
+              export MERGE_RESPONSE=$(curl -s -X POST -H "Authorization: Bearer ${TOKEN}" -H "Content-Type:application/json" "https://api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_FULL_NAME}/pullrequests/${PR_ID}/merge" -d "{\"merge_strategy\":\"merge_commit\",\"close_source_branch\":true}")
               echo "Merge API response: ${MERGE_RESPONSE}"
               echo "PR #${PR_ID} merged successfully"
