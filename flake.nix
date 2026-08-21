@@ -6,8 +6,8 @@
   */
   inputs = {
     # Package sets
-    nixpkgs.url = "nixpkgs/nixos-25.05";
-    nixos-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+    nixos-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     agenix.url = "github:ryantm/agenix";
     agenix.inputs.nixpkgs.follows = "nixpkgs";
     harmonia.url = "github:nix-community/harmonia";
