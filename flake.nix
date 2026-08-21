@@ -438,6 +438,13 @@
         in [
           ./configuration.nix
           ./services/maintenance.nix
+
+          # node.nix does not set a hostname, so without this the host comes up
+          # as "nixos" and no longer matches its flake attribute -- which
+          # autoUpgrade needs, since it pins the flake ref to
+          # `#${config.networking.hostName}`.
+          {networking.hostName = "tsNode";}
+
           ({
             config,
             pkgs,
@@ -548,7 +555,12 @@
           })
         ];
       };
-      graylog = lib.nixosSystem {
+      # Attribute name must equal networking.hostName -- "graylog-server", set in
+      # services/graylog/server.nix:7. autoUpgrade pins its flake ref to
+      # `#${config.networking.hostName}`, so a mismatch here means the upgrade
+      # unit asks for a nixosConfigurations attribute that does not exist.
+      # Deploy with `nixos-rebuild switch --flake .#graylog-server`.
+      graylog-server = lib.nixosSystem {
         system = "x86_64-linux";
         specialArgs = {inherit inputs;};
         modules = let

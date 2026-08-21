@@ -14,7 +14,7 @@ The `flake.nix` is the entry point that defines multiple NixOS system configurat
 
 - **Subnet Routers** (ts-sn-test11, ts-sn-test12, ts-sn-stage1, ts-sn-stage11): Full-featured Tailscale subnet routers with connector advertising and routing capabilities
 - **Standard Node** (tsNode): Basic Tailscale node without routing features
-- **Graylog Server** (graylog): Logging infrastructure with Tailscale connectivity
+- **Graylog Server** (graylog-server): Logging infrastructure with Tailscale connectivity
 
 ### Module System
 
