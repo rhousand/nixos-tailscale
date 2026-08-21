@@ -1,4 +1,4 @@
-image: nixos/nix:latest
+image: atlassian/default-image:4
 
 pipelines:
   custom:
@@ -7,7 +7,8 @@ pipelines:
           name: Update flake.lock and auto-merge PR
           script:
             - |
-              echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf
+              curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install linux --init none --no-confirm
+              . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
               git config user.email "pipelines@bitbucket.org"
               git config user.name "Bitbucket Pipelines"
               export BRANCH_NAME="auto/flake-update-$(date +%Y-%m-%d)"
