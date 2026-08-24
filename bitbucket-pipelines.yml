@@ -22,7 +22,7 @@ pipelines:
             - |
               BRANCH_NAME=$(cat /tmp/branch_name)
               PR_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
-                -u "${BB_AUTH_USER}:${BB_AUTH_APP_PASSWORD}" \
+                -H "Authorization: Bearer ${BB_AUTH_APP_PASSWORD}" \
                 -H "Content-Type: application/json" \
                 "https://api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_FULL_NAME}/pullrequests" \
                 -d "{\"title\":\"chore nix flake update $(date +%Y-%m-%d)\",\"source\":{\"branch\":{\"name\":\"${BRANCH_NAME}\"}},\"destination\":{\"branch\":{\"name\":\"main\"}},\"close_source_branch\":true}")
@@ -34,7 +34,7 @@ pipelines:
               if [ -z "$PR_ID" ]; then echo "ERROR: Failed to create PR"; exit 1; fi
               echo "Created PR #${PR_ID}"
               MERGE_RESPONSE=$(curl -s -X POST \
-                -u "${BB_AUTH_USER}:${BB_AUTH_APP_PASSWORD}" \
+                -H "Authorization: Bearer ${BB_AUTH_APP_PASSWORD}" \
                 -H "Content-Type: application/json" \
                 "https://api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_FULL_NAME}/pullrequests/${PR_ID}/merge" \
                 -d "{\"merge_strategy\":\"merge_commit\",\"close_source_branch\":true}")
