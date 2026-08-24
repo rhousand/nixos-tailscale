@@ -6,25 +6,37 @@ pipelines:
       - step:
           name: Update flake.lock and auto-merge PR
           script:
+            - curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install linux --init none --no-confirm
+            - . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh && nix --version
+            - git config user.email "pipelines@bitbucket.org"
+            - git config user.name "Bitbucket Pipelines"
+            - export BRANCH_NAME="auto/flake-update-$(date +%Y-%m-%d)" && echo "$BRANCH_NAME" > /tmp/branch_name
+            - git checkout -b "$(cat /tmp/branch_name)"
+            - . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh && nix flake update
+            - git add flake.lock
+            - if git diff --cached --quiet; then echo "No changes to flake.lock"; exit 0; fi
+            - git commit -m "chore nix flake update $(date +%Y-%m-%d)"
+            - git push origin "$(cat /tmp/branch_name)"
+            - echo "DEBUG BB_AUTH_USER=${BB_AUTH_USER}"
+            - echo "DEBUG BB_AUTH_APP_PASSWORD length=$(echo -n $BB_AUTH_APP_PASSWORD | wc -c)"
             - |
-              curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install linux --init none --no-confirm
-              . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
-              git config user.email "pipelines@bitbucket.org"
-              git config user.name "Bitbucket Pipelines"
-              export BRANCH_NAME="auto/flake-update-$(date +%Y-%m-%d)"
-              git checkout -b "$BRANCH_NAME"
-              nix flake update
-              git add flake.lock
-              git diff --cached --quiet && echo "No changes to flake.lock" && exit 0
-              git commit -m "chore: nix flake update $(date +%Y-%m-%d)"
-              git push origin "$BRANCH_NAME"
-              echo "Creating PR..."
-              export PR_RESPONSE=$(curl -s -X POST -u "${BB_AUTH_USER}:${BB_AUTH_APP_PASSWORD}" -H "Content-Type:application/json" "https://api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_FULL_NAME}/pullrequests" -d "{\"title\":\"chore: nix flake update $(date +%Y-%m-%d)\",\"source\":{\"branch\":{\"name\":\"${BRANCH_NAME}\"}},\"destination\":{\"branch\":{\"name\":\"main\"}},\"close_source_branch\":true}")
-              echo "PR API response: ${PR_RESPONSE}"
-              export PR_ID=$(echo "$PR_RESPONSE" | grep -o '"id": [0-9]*' | head -1 | grep -o '[0-9]*')
-              echo "Created PR #${PR_ID}"
+              BRANCH_NAME=$(cat /tmp/branch_name)
+              PR_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+                -u "${BB_AUTH_USER}:${BB_AUTH_APP_PASSWORD}" \
+                -H "Content-Type: application/json" \
+                "https://api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_FULL_NAME}/pullrequests" \
+                -d "{\"title\":\"chore nix flake update $(date +%Y-%m-%d)\",\"source\":{\"branch\":{\"name\":\"${BRANCH_NAME}\"}},\"destination\":{\"branch\":{\"name\":\"main\"}},\"close_source_branch\":true}")
+              HTTP_CODE=$(echo "$PR_RESPONSE" | tail -1)
+              BODY=$(echo "$PR_RESPONSE" | sed '$d')
+              echo "HTTP status: ${HTTP_CODE}"
+              echo "Response: ${BODY}"
+              PR_ID=$(echo "$BODY" | grep -o '"id": [0-9]*' | head -1 | grep -o '[0-9]*')
               if [ -z "$PR_ID" ]; then echo "ERROR: Failed to create PR"; exit 1; fi
-              echo "Merging PR #${PR_ID}..."
-              export MERGE_RESPONSE=$(curl -s -X POST -u "${BB_AUTH_USER}:${BB_AUTH_APP_PASSWORD}" -H "Content-Type:application/json" "https://api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_FULL_NAME}/pullrequests/${PR_ID}/merge" -d "{\"merge_strategy\":\"merge_commit\",\"close_source_branch\":true}")
-              echo "Merge API response: ${MERGE_RESPONSE}"
+              echo "Created PR #${PR_ID}"
+              MERGE_RESPONSE=$(curl -s -X POST \
+                -u "${BB_AUTH_USER}:${BB_AUTH_APP_PASSWORD}" \
+                -H "Content-Type: application/json" \
+                "https://api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_FULL_NAME}/pullrequests/${PR_ID}/merge" \
+                -d "{\"merge_strategy\":\"merge_commit\",\"close_source_branch\":true}")
+              echo "Merge response: ${MERGE_RESPONSE}"
               echo "PR #${PR_ID} merged successfully"
