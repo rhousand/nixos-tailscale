@@ -8,8 +8,8 @@ pipelines:
           script:
             - curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install linux --init none --no-confirm
             - . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh && nix --version
-            - git config user.email "pipelines@bitbucket.org"
-            - git config user.name "Bitbucket Pipelines"
+            - git config user.email "ypdjtzfx5s1kw0lzoumbd6umlit3fg@bots.bitbucket.org"
+            - git config user.name "flake-update-pipeline"
             - export BRANCH_NAME="auto/flake-update-$(date +%Y-%m-%d)" && echo "$BRANCH_NAME" > /tmp/branch_name
             - git checkout -b "$(cat /tmp/branch_name)"
             - . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh && nix flake update
