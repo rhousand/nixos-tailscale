@@ -65,6 +65,10 @@
         in [
           ./configuration.nix
           ./services/maintenance.nix
+          # See the note in boot-efi-split.nix: this host needs the one-time
+          # manual remount of the ESP to /boot/efi before its first rebuild
+          # that includes this module.
+          ./boot-efi-split.nix
           ({
             config,
             pkgs,
@@ -124,10 +128,11 @@
         in [
           ./configuration.nix
           ./services/maintenance.nix
-          # Trial of the ESP relocation (/boot -> /boot/efi). Scoped to this
-          # host only until a reboot proves it; then promote to
-          # configuration.nix for the rest of the fleet.
-          ./hosts/ts-sn-test12/boot-efi-split.nix
+          # ESP relocation (/boot -> /boot/efi). Verified on this host by
+          # reboot 2026-08-26. Rolling out host by host -- each needs the
+          # one-time manual remount documented in boot-efi-split.nix before
+          # its first rebuild -- then this moves into configuration.nix.
+          ./boot-efi-split.nix
           ({
             config,
             pkgs,
