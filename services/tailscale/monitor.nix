@@ -12,7 +12,6 @@
     useRoutingFeatures = "none";
     authKeyFile = config.age.secrets.tsKeyAge.path;
     extraUpFlags = ["--ssh" "--advertise-tags=${gladstoneArgs.tsAdvertiseTags}"];
-    extraDaemonFlags = ["--debug=127.0.0.1:9025"];
   };
 
   networking.hostName = gladstoneArgs.hostName;
