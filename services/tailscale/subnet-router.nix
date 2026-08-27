@@ -11,6 +11,7 @@
     useRoutingFeatures = "server";
     authKeyFile = config.age.secrets.tsKeyAge.path;
     extraUpFlags = ["--ssh" "--advertise-connector" "--advertise-tags=${gladstoneArgs.tsAdvertiseTags}"];
+    extraDaemonFlags = ["--debug=0.0.0.0:9025"];
   };
 
   # create a oneshot job to authenticate to Tailscale

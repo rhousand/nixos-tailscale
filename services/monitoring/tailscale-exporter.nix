@@ -110,13 +110,23 @@ in {
     }
     {
       # tailscaled's built-in metrics endpoint (--debug flag). Powers the
-      # "Tailscale / Machine" dashboard (tailscaled_* metrics).
+      # "Tailscale / Machine" dashboard (tailscaled_* metrics). Only nodes
+      # with useRoutingFeatures="server" emit the full tailscaled_* set.
       job_name = "tailscaled";
       scrape_interval = "30s";
       metrics_path = "/debug/metrics";
       static_configs = [{
-        targets = [ "127.0.0.1:9025" ];
-        labels.instance = gladstoneArgs.hostName;
+        targets = [
+          "ts-sn-test11.tail21a653.ts.net:9025"
+          "ts-sn-test12.tail21a653.ts.net:9025"
+          "ts-sn-stage11.tail21a653.ts.net:9025"
+        ];
+      }];
+      relabel_configs = [{
+        source_labels = [ "__address__" ];
+        regex = "([^.]+)\\..*";
+        replacement = "\${1}";
+        target_label = "instance";
       }];
     }
   ];
