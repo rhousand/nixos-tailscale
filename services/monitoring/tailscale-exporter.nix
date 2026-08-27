@@ -92,13 +92,34 @@ in {
     environmentFile = config.age.secrets.tailscale-env.path;
   };
 
+  # The exporter needs to resolve api.tailscale.com via MagicDNS. Wait for
+  # tailscaled to be fully up so DNS is available at startup.
+  systemd.services.prometheus-tailscale-exporter = {
+    after = [ "tailscaled.service" ];
+    wants = [ "tailscaled.service" ];
+    serviceConfig.ExecStartPre = "${pkgs.coreutils}/bin/sleep 5";
+  };
+
   # Prometheus scrape config (merges with scrapeConfigs in prometheus-grafana.nix).
-  services.prometheus.scrapeConfigs = [{
-    job_name = "tailscale";
-    scrape_interval = "60s";
-    scrape_timeout = "30s";
-    static_configs = [{ targets = [ "127.0.0.1:9250" ]; }];
-  }];
+  services.prometheus.scrapeConfigs = [
+    {
+      job_name = "tailscale";
+      scrape_interval = "60s";
+      scrape_timeout = "30s";
+      static_configs = [{ targets = [ "127.0.0.1:9250" ]; }];
+    }
+    {
+      # tailscaled's built-in metrics endpoint (--debug flag). Powers the
+      # "Tailscale / Machine" dashboard (tailscaled_* metrics).
+      job_name = "tailscaled";
+      scrape_interval = "30s";
+      metrics_path = "/debug/metrics";
+      static_configs = [{
+        targets = [ "127.0.0.1:9025" ];
+        labels.instance = gladstoneArgs.hostName;
+      }];
+    }
+  ];
 
   # Dashboards drop into the dir the existing "yace" Grafana provider already
   # watches (/etc/grafana-dashboards) — no new provider needed.
