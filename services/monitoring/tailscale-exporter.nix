@@ -119,7 +119,6 @@ in {
         targets = [
           "ts-sn-test11.tail21a653.ts.net:9025"
           "ts-sn-test12.tail21a653.ts.net:9025"
-          "ts-sn-stage1.tail21a653.ts.net:9025"
           "ts-sn-stage11.tail21a653.ts.net:9025"
         ];
       }];
