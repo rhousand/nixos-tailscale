@@ -33,4 +33,6 @@ in {
   "grafana-oauth-env.age".publicKeys = users ++ [ ts-mon1 ];
   "slack-webhook-url.age".publicKeys = users ++ [ ts-mon1 ];
   "ts-mon1-snowflake-key.age".publicKeys = users ++ [ ts-mon1 ];
+  "ts-mon1-tailscale-env.age".publicKeys = users ++ [ ts-mon1 ];
+  "grafana-secret-key.age".publicKeys = users ++ [ ts-mon1 ];
 }
