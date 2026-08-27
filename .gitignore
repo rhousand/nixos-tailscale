@@ -5,6 +5,7 @@
 
 # Claude
 .claude/
+.cortex/
 
 # Local-only working dirs (plans, notes, security audits)
 documentation/

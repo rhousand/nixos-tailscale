@@ -1,5 +1,13 @@
 # Move the EFI System Partition off /boot and onto /boot/efi.
 #
+# Importing this module is only half the change: it does not move a mount on
+# an already-running host. Each host also needs a one-time manual remount
+# before the rebuild that first picks this up --
+#   umount /boot && mkdir -p /boot/efi && mount /dev/disk/by-label/ESP /boot/efi
+# -- otherwise grub-install writes into an empty directory on the root
+# filesystem, leaves the real ESP untouched, and the next boot silently comes
+# up on the previous generation.
+#
 # The amazon-image layout gives us a 249M ESP mounted at /boot, and every
 # system generation costs ~90M there (64M kernel Image + 26M initrd on
 # aarch64). At boot.loader.grub.configurationLimit = 2 the installer peaks at
@@ -36,7 +44,8 @@
   # the same priority, and the option merges its definitions by OR rather than
   # erroring on the conflict -- a plain `false` is silently swallowed and
   # fileSystems."/boot" stays. Verify with:
-  #   nix eval .#nixosConfigurations.ts-sn-test12.config.fileSystems
+  #   nix eval .#nixosConfigurations.<host>.config.fileSystems
+  # which must show "/" and "/boot/efi", with no "/boot".
   ec2.efi = lib.mkForce false;
 
   # Re-assert verbatim what ec2.efi = true would have set. mkForce because
