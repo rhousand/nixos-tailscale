@@ -124,6 +124,10 @@
         in [
           ./configuration.nix
           ./services/maintenance.nix
+          # Trial of the ESP relocation (/boot -> /boot/efi). Scoped to this
+          # host only until a reboot proves it; then promote to
+          # configuration.nix for the rest of the fleet.
+          ./hosts/ts-sn-test12/boot-efi-split.nix
           ({
             config,
             pkgs,
