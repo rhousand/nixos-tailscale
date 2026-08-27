@@ -69,8 +69,16 @@
     ];
   };
 
+  age.secrets.grafana-secret-key = {
+    file = ../../secrets/grafana-secret-key.age;
+    owner = "grafana";
+    group = "grafana";
+    mode = "0400";
+  };
+
   services.grafana = {
     enable = true;
+    settings.security.secret_key = "$__file{${config.age.secrets.grafana-secret-key.path}}";
     settings.server = {
       # Loopback only — Tailscale serve (grafana-sso.nix) terminates TLS and
       # proxies to this. Nothing reaches :3000 directly over the tailnet.
