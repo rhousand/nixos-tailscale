@@ -10,10 +10,6 @@ let
     url = "${mixinBase}/tailscale-overview.json";
     hash = "sha256-WgZrRS4gy48x2Jpb1ZvxPfw1ZSUX1bR7FNXH5j5xbl4=";
   };
-  dashMachine = pkgs.fetchurl {
-    url = "${mixinBase}/tailscale-machine.json";
-    hash = "sha256-TBDnCD66y1g/zwQPKiOYa6YzMZWDUgdjUJqUTZIp7OM=";
-  };
 
   # Prometheus alert rules from the upstream mixin, adapted for single-host
   # (no cluster/namespace labels). Only the Tailscale tailnet alerts are kept;
@@ -101,40 +97,16 @@ in {
   };
 
   # Prometheus scrape config (merges with scrapeConfigs in prometheus-grafana.nix).
-  services.prometheus.scrapeConfigs = [
-    {
-      job_name = "tailscale";
-      scrape_interval = "60s";
-      scrape_timeout = "30s";
-      static_configs = [{ targets = [ "127.0.0.1:9250" ]; }];
-    }
-    {
-      # tailscaled's built-in metrics endpoint (--debug flag). Powers the
-      # "Tailscale / Machine" dashboard (tailscaled_* metrics). Only nodes
-      # with useRoutingFeatures="server" emit the full tailscaled_* set.
-      job_name = "tailscaled";
-      scrape_interval = "30s";
-      metrics_path = "/debug/metrics";
-      static_configs = [{
-        targets = [
-          "ts-sn-test11.tail21a653.ts.net:9025"
-          "ts-sn-test12.tail21a653.ts.net:9025"
-          "ts-sn-stage11.tail21a653.ts.net:9025"
-        ];
-      }];
-      relabel_configs = [{
-        source_labels = [ "__address__" ];
-        regex = "([^.]+)\\..*";
-        replacement = "\${1}";
-        target_label = "instance";
-      }];
-    }
-  ];
+  services.prometheus.scrapeConfigs = [{
+    job_name = "tailscale";
+    scrape_interval = "60s";
+    scrape_timeout = "30s";
+    static_configs = [{ targets = [ "127.0.0.1:9250" ]; }];
+  }];
 
   # Dashboards drop into the dir the existing "yace" Grafana provider already
   # watches (/etc/grafana-dashboards) — no new provider needed.
   environment.etc."grafana-dashboards/tailscale-overview.json".source = dashOverview;
-  environment.etc."grafana-dashboards/tailscale-machine.json".source = dashMachine;
 
   # Alert rules routed through the existing Alertmanager -> Slack pipeline.
   services.prometheus.ruleFiles = [ tailscaleAlerts ];
