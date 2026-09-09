@@ -562,7 +562,7 @@
             nixpkgs = {
               overlays = [
                 (self: super: {
-                  unstable = nixos-unstable.legacyPackages.${super.system};
+                  unstable = nixos-unstable.legacyPackages.${super.stdenv.hostPlatform.system};
                 })
               ];
             };
