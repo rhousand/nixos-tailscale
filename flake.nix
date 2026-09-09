@@ -508,6 +508,10 @@
         in [
           ./configuration.nix
           ./services/maintenance.nix
+          # See the note in boot-efi-split.nix: this host needs the one-time
+          # manual remount of the ESP to /boot/efi before its first rebuild
+          # that includes this module.
+          ./boot-efi-split.nix
           ({
             config,
             pkgs,
@@ -562,7 +566,7 @@
             nixpkgs = {
               overlays = [
                 (self: super: {
-                  unstable = nixos-unstable.legacyPackages.${super.system};
+                  unstable = nixos-unstable.legacyPackages.${super.stdenv.hostPlatform.system};
                 })
               ];
             };
