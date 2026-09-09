@@ -55,16 +55,41 @@ in {
   # auto-provisions and renews the cert for <fqdn>.
   systemd.services.tailscale-serve-grafana = {
     description = "Expose Grafana over Tailscale HTTPS";
-    after = [ "tailscaled.service" "grafana.service" ];
-    wants = [ "tailscaled.service" "grafana.service" ];
+    # Ordering after tailscaled.service alone is not enough: that only means
+    # the daemon process started, not that the node has authenticated. At boot
+    # `tailscale serve` then runs against an uninitialised backend and dies
+    # with "unexpected state: NoState", and because this is a oneshot with no
+    # Restart it stays failed until someone starts it by hand -- Grafana up,
+    # but unreachable on its tailnet name. Observed on ts-mon1 2026-09-09.
+    #
+    # tailscaled-autoconnect.service is what performs `tailscale up` with the
+    # agenix auth key; it exists because monitor.nix sets authKeyFile.
+    after = [ "tailscaled-autoconnect.service" "grafana.service" ];
+    wants = [ "tailscaled-autoconnect.service" "grafana.service" ];
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
+      # Even after autoconnect returns, the backend can still be Starting, so
+      # poll for Running rather than assuming ordering is sufficient.
+      ExecStartPre = pkgs.writeShellScript "wait-for-tailscale-running" ''
+        for _ in $(seq 1 60); do
+          state=$(${pkgs.unstable.tailscale}/bin/tailscale status --json 2>/dev/null \
+            | ${pkgs.jq}/bin/jq -r '.BackendState // empty')
+          [ "$state" = "Running" ] && exit 0
+          sleep 2
+        done
+        echo "tailscale backend not Running after 120s (last state: ''${state:-unknown})" >&2
+        exit 1
+      '';
       # If this errors, check `tailscale serve status` and the CLI syntax for
       # the installed version (unstable). Off on stop keeps state clean.
       ExecStart = "${pkgs.unstable.tailscale}/bin/tailscale serve --bg --https=443 http://127.0.0.1:3000";
       ExecStop = "${pkgs.unstable.tailscale}/bin/tailscale serve --https=443 off";
+      # Permitted with Type=oneshot, and the backstop if the poll times out on
+      # a slow boot.
+      Restart = "on-failure";
+      RestartSec = 10;
     };
   };
 }
