@@ -535,7 +535,13 @@
               (import ./services/monitoring/grafana-sso.nix {inherit config pkgs lib gladstoneArgs;})
               (import ./services/monitoring/alertmanager-slack.nix {inherit config pkgs lib gladstoneArgs;})
               (import ./services/monitoring/cloudwatch-yace.nix {inherit config pkgs lib gladstoneArgs;})
-              (import ./services/monitoring/snowflake-exporter.nix {inherit config pkgs lib gladstoneArgs;})
+              # DISABLED 2026-09-25 pending a Snowflake spend review. Each scrape runs
+              # ACCOUNT_USAGE queries on TF-WH_USER_SRVC_PROMETHEUS_EXPORTER, so the
+              # exporter bills credits on a 300s cadence around the clock. Dropping the
+              # import stops the unit *and* the scrape job, which is what halts spend --
+              # removing only the scrape job would leave the service idling. Re-enable by
+              # uncommenting; nothing else in the module needs to change.
+              # (import ./services/monitoring/snowflake-exporter.nix {inherit config pkgs lib gladstoneArgs;})
               (import ./services/monitoring/tailscale-exporter.nix {inherit config pkgs lib gladstoneArgs;})
             ];
           })

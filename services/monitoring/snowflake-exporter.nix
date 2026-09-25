@@ -1,4 +1,13 @@
 { config, pkgs, lib, gladstoneArgs, ... }:
+# NOT CURRENTLY IMPORTED. The import in flake.nix (ts-mon1) is commented out as of
+# 2026-09-25 while Snowflake spend from this exporter is reviewed: every scrape runs
+# ACCOUNT_USAGE queries on the warehouse below, billed continuously at a 300s cadence.
+# This file is kept intact so re-enabling is a one-line change. Levers worth weighing
+# before turning it back on:
+#   - raise scrape_interval (300s -> 1800s or 3600s) -- credits scale directly with it
+#   - trim the collector set, or drop unused series with metric_relabel_configs
+#     (this job was 48k of ts-mon1's 58k series, i.e. 83% of the TSDB)
+#   - confirm the warehouse auto-suspends promptly between scrapes
 let
   # ---- Fill in your Snowflake connection details ----
   account = "LDB66807";                 # account LOCATOR (from SELECT CURRENT_ACCOUNT()).
