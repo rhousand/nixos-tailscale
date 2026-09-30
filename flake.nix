@@ -93,6 +93,7 @@
             imports = [
               (import ./services/tailscale/subnet-router.nix {inherit config pkgs lib gladstoneArgs;})
               (import ./services/monitoring/node-exporter.nix {inherit config pkgs lib gladstoneArgs;})
+              (import ./services/monitoring/build-metrics.nix {inherit config pkgs lib;})
             ];
           })
 
@@ -152,6 +153,7 @@
             imports = [
               (import ./services/tailscale/subnet-router.nix {inherit config pkgs lib gladstoneArgs;})
               (import ./services/monitoring/node-exporter.nix {inherit config pkgs lib gladstoneArgs;})
+              (import ./services/monitoring/build-metrics.nix {inherit config pkgs lib;})
             ];
           })
 
@@ -259,6 +261,7 @@
             imports = [
               (import ./services/tailscale/subnet-router.nix {inherit config pkgs lib gladstoneArgs;})
               (import ./services/monitoring/node-exporter.nix {inherit config pkgs lib gladstoneArgs;})
+              (import ./services/monitoring/build-metrics.nix {inherit config pkgs lib;})
             ];
           })
 
@@ -531,6 +534,7 @@
             imports = [
               (import ./services/tailscale/monitor.nix {inherit config pkgs lib gladstoneArgs;})
               (import ./services/monitoring/node-exporter.nix {inherit config pkgs lib gladstoneArgs;})
+              (import ./services/monitoring/build-metrics.nix {inherit config pkgs lib;})
               (import ./services/monitoring/prometheus-grafana.nix {inherit config pkgs lib gladstoneArgs;})
               (import ./services/monitoring/grafana-sso.nix {inherit config pkgs lib gladstoneArgs;})
               (import ./services/monitoring/alertmanager-slack.nix {inherit config pkgs lib gladstoneArgs;})
@@ -646,6 +650,7 @@
           ./hosts/nixos-builder/tailscale.nix
           ./hosts/nixos-builder/aws-monitoring.nix
           ./hosts/nixos-builder/harmonia.nix
+          ./services/monitoring/build-metrics.nix
         ];
       };
     };
