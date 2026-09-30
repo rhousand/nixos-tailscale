@@ -17,6 +17,10 @@ let
   # node_textfile_scrape_error 1 instead of the metrics.
   writeResult = pkgs.writeShellScript "nixos-upgrade-write-metrics" ''
     set -u
+    # Do not depend on tmpfiles having run: activation does create this, but a
+    # missing directory here would fail the hook and (see the "-" prefixes
+    # below) is not worth any risk to the upgrade path.
+    ${pkgs.coreutils}/bin/install -d -m 0755 ${textfileDir}
     now=$(${pkgs.coreutils}/bin/date +%s)
     start=$(${pkgs.coreutils}/bin/cat ${stampFile} 2>/dev/null || echo "$now")
     duration=$(( now - start ))
@@ -62,6 +66,7 @@ let
   # that. See documentation/nixos-build-metrics-plan.md section 1.
   writeGeneration = pkgs.writeShellScript "nixos-generation-write-metrics" ''
     set -u
+    ${pkgs.coreutils}/bin/install -d -m 0755 ${textfileDir}
     profile=/nix/var/nix/profiles/system
 
     # The symlink's OWN mtime is when this generation was activated. Do NOT add
@@ -97,8 +102,14 @@ in {
   # no autoUpgrade -- there is no nixos-upgrade.service to hook there.
   systemd.services.nixos-upgrade = lib.mkIf config.system.autoUpgrade.enable {
     serviceConfig = {
-      ExecStartPre = [ "${markStart}" ];
-      ExecStopPost = [ "${writeResult}" ];
+      # The "-" prefix makes systemd ignore a non-zero exit from these hooks.
+      # Without it, any failure while writing metrics marks nixos-upgrade.service
+      # failed even when the rebuild itself succeeded -- so the instrumentation
+      # would manufacture the exact NixosUpgradeFailed / NixosUpgradeUnitFailed
+      # alert it exists to report, on every host that imports this module.
+      # Observability must never be able to break the thing it observes.
+      ExecStartPre = [ "-${markStart}" ];
+      ExecStopPost = [ "-${writeResult}" ];
     };
   };
 
