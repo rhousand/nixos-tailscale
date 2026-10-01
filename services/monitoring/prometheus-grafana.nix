@@ -65,6 +65,19 @@
             target_label = "__address__"; }
         ];
       }
+      # Binary-cache serve stats from the builder's Caddy (hosts/nixos-builder/
+      # harmonia.nix). 200 on /nar/* means a client pulled from the cache, 404 on
+      # a .narinfo means a miss it will rebuild -- i.e. whether the build server
+      # is earning its keep. Needs the Tailscale ACL to permit
+      # tag:monitoring -> tag:x86-builder on tcp:9180.
+      {
+        job_name = "builder-cache";
+        scrape_interval = "30s";
+        static_configs = [{
+          targets = [ "nixos-builder-x84-64-linux.tail21a653.ts.net:9180" ];
+          labels.instance = "nixos-builder-x84-64-linux";
+        }];
+      }
       # ------------------------------------------------------------------------
     ];
   };
