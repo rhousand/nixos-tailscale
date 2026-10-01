@@ -50,13 +50,30 @@
 
             # --- the builder everything else depends on ----------------------
             - alert: BuilderDown
-              expr: up{instance="nixos-builder-x84-64-linux"} == 0
+              # Scoped to the node_exporter job on purpose. Two jobs now carry
+              # instance="nixos-builder-x84-64-linux" -- tailnet-static (:9100) and
+              # builder-cache (:9180) -- so an unscoped up{instance=...} == 0 also
+              # matches the metrics port and would page critical for "build server
+              # unreachable" when only its Caddy metrics endpoint is blocked.
+              expr: up{instance="nixos-builder-x84-64-linux",job="tailnet-static"} == 0
               for: 10m
               labels:
                 severity: critical
               annotations:
                 summary: 'Build server unreachable'
                 description: 'Clients set max-jobs = 0, so every host nightly rebuild depends on this one. Their upgrades will fail while it is down.'
+
+            - alert: BuilderCacheMetricsDown
+              # The cache metrics endpoint being unreachable says nothing about the
+              # cache itself: Harmonia serves on :5000 behind Caddy on 80/443, while
+              # this is the separate :9180 metrics site. Blind panels, not an outage.
+              expr: up{job="builder-cache"} == 0
+              for: 30m
+              labels:
+                severity: warning
+              annotations:
+                summary: 'Builder Caddy metrics endpoint unreachable — cache hit-rate panels are blind'
+                description: 'The cache may be serving fine. Check the Tailscale ACL permits tag:monitoring -> tag:x86-builder on tcp:9180, and that caddy is listening: ss -ltnp | grep 9180'
 
             - alert: BuilderStoreLow
               expr: node_filesystem_avail_bytes{instance="nixos-builder-x84-64-linux",mountpoint="/"} < 15e9

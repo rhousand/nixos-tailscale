@@ -150,7 +150,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "up{instance=\"nixos-builder-x84-64-linux\"}",
+          "expr": "up{instance=\"nixos-builder-x84-64-linux\",job=\"tailnet-static\"}",
           "legendFormat": "{{job}}",
           "instant": true
         }
@@ -184,7 +184,8 @@
           ]
         },
         "overrides": []
-      }
+      },
+      "description": "Scoped to the node_exporter job: the builder-cache job carries the same instance label, so an unscoped query shows two series and the panel would read DOWN whenever only the :9180 metrics endpoint is unreachable."
     },
     {
       "id": 4,
