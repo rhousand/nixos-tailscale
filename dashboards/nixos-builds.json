@@ -1,0 +1,166 @@
+{
+  "uid": "nixos-builds",
+  "title": "NixOS builds",
+  "tags": ["nix", "builds"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "1m",
+  "time": { "from": "now-7d", "to": "now" },
+  "templating": { "list": [] },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Last upgrade result",
+      "gridPos": { "h": 5, "w": 8, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "refId": "A", "expr": "nixos_upgrade_last_exit_code", "legendFormat": "{{instance}}", "instant": true }
+      ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "OK", "color": "green", "index": 0 } } }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Hours since last successful build",
+      "gridPos": { "h": 5, "w": 8, "x": 8, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "refId": "A", "expr": "(time() - nixos_upgrade_last_success_timestamp_seconds) / 3600", "legendFormat": "{{instance}}", "instant": true }
+      ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "h",
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 26 },
+              { "color": "red", "value": 36 }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Build server up",
+      "gridPos": { "h": 5, "w": 8, "x": 16, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "refId": "A", "expr": "up{instance=\"nixos-builder-x84-64-linux\"}", "legendFormat": "{{job}}", "instant": true }
+      ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "1": { "text": "UP", "color": "green", "index": 0 }, "0": { "text": "DOWN", "color": "red", "index": 1 } } }
+          ]
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Upgrade duration per host",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 5 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "refId": "A", "expr": "nixos_upgrade_duration_seconds", "legendFormat": "{{instance}}" }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "s", "custom": { "drawStyle": "points", "pointSize": 6 } },
+        "overrides": []
+      }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Builder CPU busy %",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 5 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "refId": "A", "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{instance=\"nixos-builder-x84-64-linux\",mode=\"idle\"}[5m])) * 100)", "legendFormat": "cpu busy" },
+        { "refId": "B", "expr": "avg by (instance) (rate(node_cpu_seconds_total{instance=\"nixos-builder-x84-64-linux\",mode=\"iowait\"}[5m])) * 100", "legendFormat": "io wait" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percent", "max": 100, "min": 0 }, "overrides": [] }
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Builder /nix free space",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 13 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "refId": "A", "expr": "node_filesystem_avail_bytes{instance=\"nixos-builder-x84-64-linux\",mountpoint=\"/\"}", "legendFormat": "avail" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "bytes" }, "overrides": [] }
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Binary cache responses by code (hit vs miss)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 13 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "refId": "A", "expr": "sum by (code) (rate(caddy_http_responses_total{job=\"builder-cache\"}[5m]))", "legendFormat": "{{code}}" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] }
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "nixos-upgrade unit failed — every scraped NixOS host",
+      "description": "Systemd-collector fallback (see 1.5). Covers hosts without build-metrics.nix, e.g. tryon-etl-python. Catches failures, not a frozen host that reports success.",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 21 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "refId": "A", "expr": "node_systemd_unit_state{name=\"nixos-upgrade.service\",state=\"failed\"}", "legendFormat": "{{instance}}" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "max": 1,
+          "min": 0,
+          "custom": { "drawStyle": "line", "lineInterpolation": "stepAfter", "fillOpacity": 20 }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 9,
+      "type": "table",
+      "title": "NixOS hosts with no build metrics (coverage gap)",
+      "description": "Scraped, NixOS, but emitting no nixos_generation_number — invisible to every other panel here. Empty table is the healthy state.",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 21 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "refId": "A", "expr": "count by (instance) (node_os_info{id=\"nixos\"}) unless count by (instance) (nixos_generation_number)", "legendFormat": "{{instance}}", "instant": true, "format": "table" }
+      ],
+      "transformations": [
+        { "id": "organize", "options": { "excludeByName": { "Time": true, "Value": true } } }
+      ],
+      "fieldConfig": { "defaults": { }, "overrides": [] }
+    }
+  ]
+}

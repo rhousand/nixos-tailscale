@@ -547,6 +547,7 @@
               # uncommenting; nothing else in the module needs to change.
               # (import ./services/monitoring/snowflake-exporter.nix {inherit config pkgs lib gladstoneArgs;})
               (import ./services/monitoring/tailscale-exporter.nix {inherit config pkgs lib gladstoneArgs;})
+              (import ./services/monitoring/build-dashboards.nix {inherit pkgs;})
             ];
           })
           # ts-mon1 only: 2 GiB t4g.small runs Nix eval locally each night. zram gives a
