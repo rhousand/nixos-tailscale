@@ -93,4 +93,30 @@
       }];
     };
   };
+
+  # amtool, for silencing an alert without a deploy. It ships in the same package
+  # as the daemon -- and crucially resolves to the same store path, since
+  # services.prometheus.alertmanager.package defaults to this attribute -- so the
+  # CLI and the running Alertmanager can never drift apart on a flake update.
+  #
+  # The closure is already on disk for the service, so this costs symlinks in
+  # system-path rather than 104 MiB. What it buys is a runbook that does not
+  # contain a /nix/store path: that hash changes on every Alertmanager bump and
+  # the path is garbage-collectable, so pasted-in store paths rot silently.
+  # See documentation/silencing-alerts.md.
+  environment.systemPackages = [ pkgs.prometheus-alertmanager ];
+
+  # amtool reads $HOME/.config/amtool/config.yml or /etc/amtool/config.yml, so the
+  # defaults can be declarative instead of a hand-made dotfile.
+  #
+  # comment_required is the useful half: it refuses to create a silence with no
+  # explanation. An unexplained silence outlives the reason for it and the next
+  # person cannot tell whether expiring it is safe.
+  #
+  # No `author`: it defaults to $USER, and hardcoding a name here would
+  # misattribute silences created by anyone else on this host.
+  environment.etc."amtool/config.yml".text = ''
+    alertmanager.url: http://127.0.0.1:${toString config.services.prometheus.alertmanager.port}
+    comment_required: true
+  '';
 }
