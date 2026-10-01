@@ -22,14 +22,20 @@
   services.caddy = {
     enable = true;
 
-    # Caddy collects per-server HTTP metrics only when this is set. Verified on
-    # 2.11.4: without it the admin endpoint answers /metrics with HTTP 200 but
-    # emits zero caddy_http_* series, so the cache panels would sit empty with
-    # no obvious cause.
+    # Caddy collects per-server HTTP metrics only when this is enabled. Verified
+    # on 2.11.4: without it the admin endpoint answers /metrics with HTTP 200 but
+    # emits zero caddy_http_* series, so the cache panels would sit empty with no
+    # obvious cause.
+    #
+    # Top-level `metrics`, not the nested `servers { metrics }`. 2.11.4 accepts
+    # both but logs on every reload:
+    #   "The nested 'metrics' option inside `servers` is deprecated and will be
+    #    removed in the next major version. Use the global 'metrics' option
+    #    instead."
+    # Left on the nested form, a future Caddy major would silently stop
+    # collecting and the cache panels would go blank for no visible reason.
     globalConfig = ''
-      servers {
-        metrics
-      }
+      metrics
     '';
 
     virtualHosts."nixos-builder-x84-64-linux.tail21a653.ts.net".extraConfig = ''
