@@ -65,6 +65,23 @@
             target_label = "__address__"; }
         ];
       }
+      # Prometheus' own metrics: TSDB size, ingest rate, head series, scrape
+      # health. Without this job every prometheus_* series is absent, so TSDB
+      # growth can only be measured by hand on the box and TsdbGrowthUnbounded
+      # in build-alerts.nix cannot evaluate.
+      #
+      # 60s, not the 15s global: these are slow-moving gauges, and Prometheus
+      # exports a few thousand series about itself. A quarter of the sample rate
+      # is a quarter of the disk for no loss of signal here.
+      {
+        job_name = "prometheus-self";
+        scrape_interval = "60s";
+        static_configs = [{
+          targets = [ "localhost:9090" ];
+          labels.instance = gladstoneArgs.hostName;
+        }];
+      }
+
       # Binary-cache serve stats from the builder's Caddy (hosts/nixos-builder/
       # harmonia.nix). 200 on /nar/* means a client pulled from the cache, 404 on
       # a .narinfo means a miss it will rebuild -- i.e. whether the build server
