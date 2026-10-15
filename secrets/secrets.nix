@@ -8,7 +8,9 @@ let
   ts-sn-test12 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILGaoMvul1XuY+OWaGTYEAb6sXztxtja3lvQ7tfCF7qy";
   ts-sn-stage1 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPd9yN8U+r1+A+EeCJiYjAmWa2Dt3MnXJSyuToZwQNwK";
   ts-sn-stage11 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICgGGmuU+CzdM1J1mo5Ic34GpxvHYn49MV6I9OIMR2pP";
-  systems = [rhlaptop ts-sn-test11 ts-sn-test12 ts-sn-stage1 ts-sn-stage11 ];
+  ts-sn-stage12 = "ssh-ed25519 PLACEHOLDER_REPLACE_WITH_STAGE12_HOST_KEY";
+  ts-sn-stage13 = "ssh-ed25519 PLACEHOLDER_REPLACE_WITH_STAGE13_HOST_KEY";
+  systems = [rhlaptop ts-sn-test11 ts-sn-test12 ts-sn-stage1 ts-sn-stage11 ts-sn-stage12 ts-sn-stage13 ];
 
   # Monitor host (ts-mon1). Own recipient set so the subnet-router tskeys above
   # are not rekeyed to include it.
@@ -27,6 +29,8 @@ in {
   "ts-sn-test11-tskey.age".publicKeys = users ++ systems;
   "ts-sn-test12-tskey.age".publicKeys = users ++ systems;
   "ts-sn-stage11-tskey.age".publicKeys = users ++ systems;
+  "ts-sn-stage12-tskey.age".publicKeys = users ++ systems;
+  "ts-sn-stage13-tskey.age".publicKeys = users ++ systems;
   "ts-sn-stage1-tskey.age".publicKeys = users ++ systems;
   "ts-buildserver.age".publicKeys = buildserverUsers ++ buildserverSystems;
   "ts-mon1-tskey.age".publicKeys = users ++ [ ts-mon1 ];
