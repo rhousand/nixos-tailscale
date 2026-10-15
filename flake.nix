@@ -36,6 +36,70 @@
     ...
   } @ inputs: let
     lib = nixpkgs.lib;
+
+    # Shared builder for aarch64 Tailscale subnet routers. Every ts-sn-*
+    # host follows the same module pattern; only the gladstoneArgs and a
+    # couple of feature flags differ.
+    mkSubnetRouter = {
+      hostName,
+      tsAdvertiseTags,
+      tsKeyAgeFile ? "secrets/${hostName}-tskey.age",
+      bootEfiSplit ? true,
+      monitoring ? true,
+    }:
+      lib.nixosSystem {
+        system = "aarch64-linux";
+        specialArgs = {inherit inputs;};
+        modules = let
+          gladstoneArgs = {inherit tsAdvertiseTags hostName tsKeyAgeFile;};
+        in
+          [
+            ./configuration.nix
+            ./services/maintenance.nix
+          ]
+          ++ lib.optional bootEfiSplit ./boot-efi-split.nix
+          ++ [
+            ({
+              config,
+              pkgs,
+              lib,
+              ...
+            }: {
+              imports = [
+                (import ./security/agenix.nix {inherit config pkgs lib inputs gladstoneArgs;})
+              ];
+            })
+            ({
+              config,
+              pkgs,
+              lib,
+              ...
+            }: {
+              imports =
+                [
+                  (import ./services/tailscale/subnet-router.nix {inherit config pkgs lib gladstoneArgs;})
+                ]
+                ++ lib.optionals monitoring [
+                  (import ./services/monitoring/node-exporter.nix {inherit config pkgs lib;})
+                  (import ./services/monitoring/build-metrics.nix {inherit config pkgs lib;})
+                ];
+            })
+            ({
+              pkgs,
+              config,
+              ...
+            }: {
+              nixpkgs.overlays = [
+                (self: super: {
+                  unstable = import nixos-unstable {
+                    system = "aarch64-linux";
+                    config.allowUnfree = true;
+                  };
+                })
+              ];
+            })
+          ];
+      };
   in {
     nixosConfigurations = {
       #   ____        _                _
@@ -50,238 +114,31 @@
       #  |  _ < (_) | |_| | ||  __/ |    | |__| (_) | | | |  _| | (_| \__ \
       #  |_| \_\___/ \__,_|\__\___|_|     \____\___/|_| |_|_| |_|\__, |___/
       #                                                          |___/
-      ts-sn-test11 = lib.nixosSystem {
-        #system = "x86_64-linux";
-        system = "aarch64-linux";
-        specialArgs = {inherit inputs;};
-        modules = let
-          gladstoneArgs = {
-            # tsAuthKey should not be created as a reusable key in Tailscale
-            #tsAuthKey = "tskey-auth-kLUkmDsK8r11CNTRL-BhmE6jstFW42VxKLxe9kV4vEiCTiApKU4";
-            tsAdvertiseTags = "tag:snowflake";
-            hostName = "ts-sn-test11";
-            tsKeyAgeFile = "secrets/ts-sn-test11-tskey.age";
-          };
-        in [
-          ./configuration.nix
-          ./services/maintenance.nix
-          # See the note in boot-efi-split.nix: this host needs the one-time
-          # manual remount of the ESP to /boot/efi before its first rebuild
-          # that includes this module.
-          ./boot-efi-split.nix
-          ({
-            config,
-            pkgs,
-            lib,
-            ...
-          }: {
-            imports = [
-              (import ./security/agenix.nix { inherit config pkgs lib inputs gladstoneArgs; })
-            ];
-          })
-          /*
-          Pass gladstoneArgs to the subnet-router.nix config.
-            Remember to add gladstoneArgs to the the top lib import of the module.
-          To use the viriable for gladstoneArgs use gladstoneArgs.VAR_NAME
-          */
-          ({
-            config,
-            pkgs,
-            lib,
-            ...
-          }: {
-            imports = [
-              (import ./services/tailscale/subnet-router.nix {inherit config pkgs lib gladstoneArgs;})
-              (import ./services/monitoring/node-exporter.nix {inherit config pkgs lib gladstoneArgs;})
-              (import ./services/monitoring/build-metrics.nix {inherit config pkgs lib;})
-            ];
-          })
-
-          # Nixpkgs Unstable Overlay allows some packages to be built using the unstable branch on nix packages.
-          ({
-            pkgs,
-            config,
-            ...
-          }: {
-            nixpkgs = {
-              overlays = [
-                (self: super: {
-                  unstable = import nixos-unstable {
-                    system = "aarch64-linux";
-                    config.allowUnfree = true;
-                  };
-                })
-              ];
-            };
-          })
-        ];
+      ts-sn-test11 = mkSubnetRouter {
+        hostName = "ts-sn-test11";
+        tsAdvertiseTags = "tag:snowflake";
       };
-      ts-sn-test12 = lib.nixosSystem {
-        system = "aarch64-linux";
-        specialArgs = {inherit inputs;};
-        modules = let
-          gladstoneArgs = {
-            #tsAuthKey = "tskey-auth-kSM7o3jbzx11CNTRL-xfsxNThM6h3Tg4NtsaMKg3TVGzKaLh9M";
-            tsAdvertiseTags = "tag:rds-nonprod";
-            hostName = "ts-sn-test12";
-            tsKeyAgeFile = "secrets/ts-sn-test12-tskey.age";
-          };
-        in [
-          ./configuration.nix
-          ./services/maintenance.nix
-          # ESP relocation (/boot -> /boot/efi). Verified on this host by
-          # reboot 2026-08-26. Rolling out host by host -- each needs the
-          # one-time manual remount documented in boot-efi-split.nix before
-          # its first rebuild -- then this moves into configuration.nix.
-          ./boot-efi-split.nix
-          ({
-            config,
-            pkgs,
-            lib,
-            ...
-          }: {
-            imports = [
-              (import ./security/agenix.nix { inherit config pkgs lib inputs gladstoneArgs; })
-            ];
-          })
-          ({
-            config,
-            pkgs,
-            lib,
-            ...
-          }: {
-            imports = [
-              (import ./services/tailscale/subnet-router.nix {inherit config pkgs lib gladstoneArgs;})
-              (import ./services/monitoring/node-exporter.nix {inherit config pkgs lib gladstoneArgs;})
-              (import ./services/monitoring/build-metrics.nix {inherit config pkgs lib;})
-            ];
-          })
-
-          ({
-            pkgs,
-            config,
-            ...
-          }: {
-            nixpkgs = {
-              overlays = [
-                (self: super: {
-                  unstable = import nixos-unstable {
-                    system = "aarch64-linux";
-                    config.allowUnfree = true;
-                  };
-                })
-              ];
-            };
-          })
-        ];
+      ts-sn-test12 = mkSubnetRouter {
+        hostName = "ts-sn-test12";
+        tsAdvertiseTags = "tag:rds-nonprod";
       };
-      ts-sn-stage1 = lib.nixosSystem {
-        system = "aarch64-linux";
-        specialArgs = {inherit inputs;};
-        modules = let
-          gladstoneArgs = {
-            tsAdvertiseTags = "tag:snowflake,tag:rds-stage";
-            hostName = "ts-sn-stage1";
-            tsKeyAgeFile = "secrets/ts-sn-stage1-tskey.age";
-          };
-        in [
-          ./configuration.nix
-          ./services/maintenance.nix
-          ({
-            config,
-            pkgs,
-            lib,
-            ...
-          }: {
-            imports = [
-              (import ./security/agenix.nix { inherit config pkgs lib inputs gladstoneArgs; })
-            ];
-          })
-          ({
-            config,
-            pkgs,
-            lib,
-            ...
-          }: {
-            imports = [
-              (import ./services/tailscale/subnet-router.nix {inherit config pkgs lib gladstoneArgs;})
-            ];
-          })
-
-          ({
-            pkgs,
-            config,
-            ...
-          }: {
-            nixpkgs = {
-              overlays = [
-                (self: super: {
-                  unstable = import nixos-unstable {
-                    system = "aarch64-linux";
-                    config.allowUnfree = true;
-                  };
-                })
-              ];
-            };
-          })
-        ];
+      ts-sn-stage1 = mkSubnetRouter {
+        hostName = "ts-sn-stage1";
+        tsAdvertiseTags = "tag:snowflake,tag:rds-stage";
+        bootEfiSplit = false;
+        monitoring = false;
       };
-      ts-sn-stage11 = lib.nixosSystem {
-        system = "aarch64-linux";
-        specialArgs = {inherit inputs;};
-        modules = let
-          gladstoneArgs = {
-            tsAdvertiseTags = "tag:snowflake,tag:rds-stage";
-            hostName = "ts-sn-stage11";
-            tsKeyAgeFile = "secrets/ts-sn-stage11-tskey.age";
-          };
-        in [
-          ./configuration.nix
-          ./services/maintenance.nix
-          # See the note in boot-efi-split.nix: this host needs the one-time
-          # manual remount of the ESP to /boot/efi before its first rebuild
-          # that includes this module.
-          ./boot-efi-split.nix
-          ({
-            config,
-            pkgs,
-            lib,
-            ...
-          }: {
-            imports = [
-              (import ./security/agenix.nix { inherit config pkgs lib inputs gladstoneArgs; })
-            ];
-          })
-          ({
-            config,
-            pkgs,
-            lib,
-            ...
-          }: {
-            imports = [
-              (import ./services/tailscale/subnet-router.nix {inherit config pkgs lib gladstoneArgs;})
-              (import ./services/monitoring/node-exporter.nix {inherit config pkgs lib gladstoneArgs;})
-              (import ./services/monitoring/build-metrics.nix {inherit config pkgs lib;})
-            ];
-          })
-
-          ({
-            pkgs,
-            config,
-            ...
-          }: {
-            nixpkgs = {
-              overlays = [
-                (self: super: {
-                  unstable = import nixos-unstable {
-                    system = "aarch64-linux";
-                    config.allowUnfree = true;
-                  };
-                })
-              ];
-            };
-          })
-        ];
+      ts-sn-stage11 = mkSubnetRouter {
+        hostName = "ts-sn-stage11";
+        tsAdvertiseTags = "tag:snowflake,tag:rds-stage";
+      };
+      ts-sn-stage12 = mkSubnetRouter {
+        hostName = "ts-sn-stage12";
+        tsAdvertiseTags = "tag:snowflake";
+      };
+      ts-sn-stage13 = mkSubnetRouter {
+        hostName = "ts-sn-stage13";
+        tsAdvertiseTags = "tag:snowflake";
       };
 #      #    ___  _     _   _____                       ____  _               _      ____             __ _       
 #      #  / _ \| | __| | |_   _| __ _   _  ___  _ __ |  _ \(_)_ __ ___  ___| |_   / ___|___  _ __  / _(_) __ _ 
@@ -590,46 +447,46 @@
       # `#${config.networking.hostName}`, so a mismatch here means the upgrade
       # unit asks for a nixosConfigurations attribute that does not exist.
       # Deploy with `nixos-rebuild switch --flake .#graylog-server`.
-      graylog-server = lib.nixosSystem {
-        system = "x86_64-linux";
-        specialArgs = {inherit inputs;};
-        modules = let
-          gladstoneArgs = {
-            tsAuthKey = builtins.getEnv "TS_AUTH_KEY";
-          };
-        in [
-          ./configuration.nix
-          ./services/maintenance.nix
-          ./services/graylog/server.nix
-          ({
-            config,
-            pkgs,
-            lib,
-            ...
-          }: {
-            imports = [
-              (import ./services/tailscale/node.nix {inherit config pkgs lib gladstoneArgs;})
-            ];
-          })
-
-          ({
-            pkgs,
-            config,
-            ...
-          }: {
-            nixpkgs = {
-              overlays = [
-                (self: super: {
-                  unstable = import nixos-unstable {
-                    system = "x86_64-linux";
-                    config.allowUnfree = true;
-                  };
-                })
-              ];
-            };
-          })
-        ];
-      };
+        #      graylog-server = lib.nixosSystem {
+        #        system = "x86_64-linux";
+        #        specialArgs = {inherit inputs;};
+        #        modules = let
+        #          gladstoneArgs = {
+        #            tsAuthKey = builtins.getEnv "TS_AUTH_KEY";
+        #          };
+        #        in [
+        #          ./configuration.nix
+        #          ./services/maintenance.nix
+        #          ./services/graylog/server.nix
+        #          ({
+        #            config,
+        #            pkgs,
+        #            lib,
+        #            ...
+        #          }: {
+        #            imports = [
+        #              (import ./services/tailscale/node.nix {inherit config pkgs lib gladstoneArgs;})
+        #            ];
+        #          })
+        #
+        #          ({
+        #            pkgs,
+        #            config,
+        #            ...
+        #          }: {
+        #            nixpkgs = {
+        #              overlays = [
+        #                (self: super: {
+        #                  unstable = import nixos-unstable {
+        #                    system = "x86_64-linux";
+        #                    config.allowUnfree = true;
+        #                  };
+        #                })
+        #              ];
+        #            };
+        #          })
+        #        ];
+        #      };
       #  ____        _ _     _
       # | __ ) _   _(_) | __| | ___ _ __
       # |  _ \| | | | | |/ _` |/ _ \ '__|
