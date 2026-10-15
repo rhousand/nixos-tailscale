@@ -28,7 +28,7 @@ in
   # unquoted `&` splice that kills the unit with exit 127).
   system.autoUpgrade = {
     enable = true;
-    flake = "git+ssh://git@bitbucket.org/scain-td/nixos-flake-tailscale#${config.networking.hostName}";
+    flake = "git+ssh://git@ssh.bitbucket.org/scain-td/nixos-flake-tailscale#${config.networking.hostName}";
     # No "--refresh" here: auto-upgrade.nix already prepends it whenever
     # `flake` is set, so listing it again just duplicates the argument.
     flags = [
