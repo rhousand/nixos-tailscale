@@ -8,8 +8,8 @@ let
   ts-sn-test12 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILGaoMvul1XuY+OWaGTYEAb6sXztxtja3lvQ7tfCF7qy";
   ts-sn-stage1 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPd9yN8U+r1+A+EeCJiYjAmWa2Dt3MnXJSyuToZwQNwK";
   ts-sn-stage11 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICgGGmuU+CzdM1J1mo5Ic34GpxvHYn49MV6I9OIMR2pP";
-  ts-sn-stage12 = "ssh-ed25519 PLACEHOLDER_REPLACE_WITH_STAGE12_HOST_KEY";
-  ts-sn-stage13 = "ssh-ed25519 PLACEHOLDER_REPLACE_WITH_STAGE13_HOST_KEY";
+  ts-sn-stage12 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINrngVwTQyrfBQJ1Uzv3Rc+SeoFitw1ckPR9NRbE3Xyk";
+  ts-sn-stage13 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGMiVLh794XT1gsywlOozFAIa2nETkdYH391XNO0PInp";
   systems = [rhlaptop ts-sn-test11 ts-sn-test12 ts-sn-stage1 ts-sn-stage11 ts-sn-stage12 ts-sn-stage13 ];
 
   # Monitor host (ts-mon1). Own recipient set so the subnet-router tskeys above
