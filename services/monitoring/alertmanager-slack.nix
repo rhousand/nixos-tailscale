@@ -79,8 +79,16 @@
         group_wait = "30s";
         group_interval = "5m";
         repeat_interval = "4h"; # re-nag every 4h while still firing
+        # Test subnet routers: still scraped and on the dashboards, but their
+        # alerts are dropped here so every rule file is covered in one place.
+        routes = [{
+          matchers = [ ''instance=~"ts-sn-test11|ts-sn-test12"'' ];
+          receiver = "null";
+        }];
       };
       receivers = [{
+        name = "null";
+      } {
         name = "slack";
         slack_configs = [{
           channel = "#grafana-alerts";
