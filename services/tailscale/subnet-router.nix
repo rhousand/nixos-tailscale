@@ -10,7 +10,17 @@
     package = pkgs.unstable.tailscale;
     useRoutingFeatures = "server";
     authKeyFile = config.age.secrets.tsKeyAge.path;
-    extraUpFlags = ["--ssh" "--advertise-connector" "--advertise-tags=${gladstoneArgs.tsAdvertiseTags}"];
+    # extraUpFlags only apply when tailscaled-autoconnect runs `tailscale up`,
+    # i.e. at first login. On an already-authenticated node a restart skips
+    # it, so anything set here silently drifts if someone runs
+    # `tailscale up/set` by hand -- ts-sn-stage12 ended up with
+    # AppConnector.Advertise=false that way, keeping stale app-connector
+    # routes in its prefs. Tags stay here: `tailscale set` cannot change
+    # them, and on existing nodes they are managed in the admin console.
+    extraUpFlags = ["--advertise-tags=${gladstoneArgs.tsAdvertiseTags}"];
+    # extraSetFlags run as `tailscale set` on every start, re-asserting state
+    # that must hold on every subnet router.
+    extraSetFlags = ["--ssh" "--advertise-connector"];
   };
 
   # create a oneshot job to authenticate to Tailscale

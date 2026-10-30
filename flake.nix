@@ -130,15 +130,15 @@
       };
       ts-sn-stage11 = mkSubnetRouter {
         hostName = "ts-sn-stage11";
-        tsAdvertiseTags = "tag:snowflake,tag:rds-stage";
+        tsAdvertiseTags = "tag:snowflake,tag:rds-stage,tag:mwaa-connector";
       };
       ts-sn-stage12 = mkSubnetRouter {
         hostName = "ts-sn-stage12";
-        tsAdvertiseTags = "tag:snowflake";
+        tsAdvertiseTags = "tag:snowflake,tag:rds-stage";
       };
       ts-sn-stage13 = mkSubnetRouter {
         hostName = "ts-sn-stage13";
-        tsAdvertiseTags = "tag:snowflake";
+        tsAdvertiseTags = "tag:snowflake,tag:rds-stage,tag:mwaa-connector";
       };
 #      #    ___  _     _   _____                       ____  _               _      ____             __ _       
 #      #  / _ \| | __| | |_   _| __ _   _  ___  _ __ |  _ \(_)_ __ ___  ___| |_   / ___|___  _ __  / _(_) __ _ 
