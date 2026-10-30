@@ -91,6 +91,62 @@ let
     ${pkgs.coreutils}/bin/chmod 0644 "$tmp"
     ${pkgs.coreutils}/bin/mv -f "$tmp" "$out"
   '';
+
+  # node_uname_info only shows the RUNNING kernel. nixos-upgrade switches
+  # nightly without rebooting, so after a kernel bump the booted kernel and the
+  # one the default generation will boot diverge silently until a reboot. See
+  # documentation/kernel-version-tracking-plan.md.
+  #
+  # Compares kernel STORE PATHS, not version strings, so a same-version rebuild
+  # with different patches or config also counts as pending. Versions come from
+  # the closure's kernel-modules/lib/modules/<version> directory, which avoids
+  # parsing the kernel image.
+  writeKernel = pkgs.writeShellScript "nixos-kernel-write-metrics" ''
+    set -u
+    ${pkgs.coreutils}/bin/install -d -m 0755 ${textfileDir}
+    booted_sys=/run/booted-system
+    default_sys=/nix/var/nix/profiles/system
+
+    # Emit "unknown" rather than failing: a missing lookup must not stop the
+    # rest of the file being written.
+    kver() {
+      for d in "$1"/kernel-modules/lib/modules/*; do
+        if [ -d "$d" ]; then
+          ${pkgs.coreutils}/bin/basename "$d"
+          return
+        fi
+      done
+      echo unknown
+    }
+
+    booted=$(kver "$booted_sys")
+    default=$(kver "$default_sys")
+    booted_path=$(${pkgs.coreutils}/bin/readlink -f "$booted_sys/kernel" 2>/dev/null || true)
+    default_path=$(${pkgs.coreutils}/bin/readlink -f "$default_sys/kernel" 2>/dev/null || true)
+
+    # Only flag a reboot when both paths resolved; an unreadable profile is a
+    # gap, not evidence of a staged kernel.
+    if [ -n "$booted_path" ] && [ -n "$default_path" ] && [ "$booted_path" != "$default_path" ]; then
+      reboot_required=1
+    else
+      reboot_required=0
+    fi
+
+    out=${textfileDir}/nixos_kernel.prom
+    tmp=$out.$$
+
+    {
+      echo '# HELP nixos_kernel_info Booted and default-generation kernel versions.'
+      echo '# TYPE nixos_kernel_info gauge'
+      echo "nixos_kernel_info{booted=\"$booted\",default=\"$default\"} 1"
+      echo '# HELP nixos_kernel_reboot_required 1 if the default generation boots a different kernel than the running one.'
+      echo '# TYPE nixos_kernel_reboot_required gauge'
+      echo "nixos_kernel_reboot_required $reboot_required"
+    } > "$tmp"
+
+    ${pkgs.coreutils}/bin/chmod 0644 "$tmp"
+    ${pkgs.coreutils}/bin/mv -f "$tmp" "$out"
+  '';
 in {
   # Deliberately does NOT import node-exporter.nix: flake.nix already imports
   # that per host in call form, and the module system dedupes by path only -- a
@@ -109,17 +165,21 @@ in {
       # alert it exists to report, on every host that imports this module.
       # Observability must never be able to break the thing it observes.
       ExecStartPre = [ "-${markStart}" ];
-      ExecStopPost = [ "-${writeResult}" ];
+      # writeKernel here too, so a kernel staged by the nightly switch shows up
+      # immediately rather than up to an hour later on the next timer tick.
+      ExecStopPost = [ "-${writeResult}" "-${writeKernel}" ];
     };
   };
 
   # Generation age, on a timer rather than tied to an upgrade run: a host that
-  # stops upgrading altogether must still report a growing age.
+  # stops upgrading altogether must still report a growing age. The kernel
+  # metrics ride the same timer; OnBootSec clears the reboot flag ~2 min after
+  # a reboot.
   systemd.services.nixos-generation-metrics = {
-    description = "Export the current NixOS generation as Prometheus metrics";
+    description = "Export the current NixOS generation and kernel as Prometheus metrics";
     serviceConfig = {
       Type = "oneshot";
-      ExecStart = "${writeGeneration}";
+      ExecStart = [ "${writeGeneration}" "${writeKernel}" ];
     };
   };
 
