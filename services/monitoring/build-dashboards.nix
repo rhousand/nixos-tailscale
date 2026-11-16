@@ -34,7 +34,7 @@ let
   '';
 in {
   # The file provider watching /etc/grafana-dashboards is already declared in
-  # cloudwatch-yace.nix, so these are just two more files in that directory.
+  # cloudwatch-yace.nix, so these are just more files in that directory.
   # Grafana picks them up without a restart.
   environment.etc."grafana-dashboards/node-exporter-full.json".source = nodeFullFixed;
 
@@ -44,4 +44,10 @@ in {
   # documentation/nixos-build-metrics-plan.md section 7.2.
   environment.etc."grafana-dashboards/nixos-builds.json".source =
     ../../dashboards/nixos-builds.json;
+
+  # Hand-rolled: etl_job_* / dbt_* series come from bashlib/etl_metrics.sh in the
+  # tryon-etl-python repo. Alerts for the same series are in etl-alerts.nix. See
+  # documentation/telemetry-plan.md.
+  environment.etc."grafana-dashboards/etl-jobs.json".source =
+    ../../dashboards/etl-jobs.json;
 }
