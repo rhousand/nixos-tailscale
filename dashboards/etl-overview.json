@@ -8,7 +8,7 @@
   ],
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 1,
+  "version": 2,
   "refresh": "1m",
   "time": {
     "from": "now-7d",
@@ -218,37 +218,37 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "etl_job_exit_code{etl_job=~\"$etl_job\"}",
+          "expr": "max by (etl_job) (etl_job_exit_code{etl_job=~\"$etl_job\"})",
           "format": "table",
           "instant": true
         },
         {
           "refId": "B",
-          "expr": "etl_job_last_run_timestamp_seconds{etl_job=~\"$etl_job\"} * 1000",
+          "expr": "max by (etl_job) (etl_job_last_run_timestamp_seconds{etl_job=~\"$etl_job\"} * 1000)",
           "format": "table",
           "instant": true
         },
         {
           "refId": "C",
-          "expr": "time() - etl_job_last_success_timestamp_seconds{etl_job=~\"$etl_job\"}",
+          "expr": "max by (etl_job) (time() - etl_job_last_success_timestamp_seconds{etl_job=~\"$etl_job\"})",
           "format": "table",
           "instant": true
         },
         {
           "refId": "D",
-          "expr": "(time() - etl_job_last_success_timestamp_seconds{etl_job=~\"$etl_job\"}) / on (instance, etl_job) etl_job_expected_interval_seconds{etl_job=~\"$etl_job\"} * 100",
+          "expr": "max by (etl_job) ((time() - etl_job_last_success_timestamp_seconds{etl_job=~\"$etl_job\"}) / on (instance, etl_job) etl_job_expected_interval_seconds{etl_job=~\"$etl_job\"} * 100)",
           "format": "table",
           "instant": true
         },
         {
           "refId": "E",
-          "expr": "etl_job_duration_seconds{etl_job=~\"$etl_job\"}",
+          "expr": "max by (etl_job) (etl_job_duration_seconds{etl_job=~\"$etl_job\"})",
           "format": "table",
           "instant": true
         },
         {
           "refId": "F",
-          "expr": "etl_job_last_start_timestamp_seconds{etl_job=~\"$etl_job\"} > bool (etl_job_last_run_timestamp_seconds{etl_job=~\"$etl_job\"} or etl_job_last_start_timestamp_seconds{etl_job=~\"$etl_job\"} * 0)",
+          "expr": "max by (etl_job) (etl_job_last_start_timestamp_seconds{etl_job=~\"$etl_job\"} > bool (etl_job_last_run_timestamp_seconds{etl_job=~\"$etl_job\"} or etl_job_last_start_timestamp_seconds{etl_job=~\"$etl_job\"} * 0))",
           "format": "table",
           "instant": true
         }
@@ -263,11 +263,7 @@
           "id": "organize",
           "options": {
             "excludeByName": {
-              "Time": true,
-              "__name__": true,
-              "instance": true,
-              "instance_id": true,
-              "job": true
+              "Time": true
             },
             "indexByName": {
               "etl_job": 0,
@@ -481,11 +477,12 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "etl_job_exit_code{etl_job=~\"$etl_job\"}",
-          "legendFormat": "{{etl_job}}"
+          "expr": "((max by (etl_job) (etl_job_last_start_timestamp_seconds{etl_job=~\"$etl_job\"} > bool (etl_job_last_run_timestamp_seconds{etl_job=~\"$etl_job\"} or etl_job_last_start_timestamp_seconds{etl_job=~\"$etl_job\"} * 0))) == 1) - 2 or max by (etl_job) (etl_job_exit_code{etl_job=~\"$etl_job\"})",
+          "legendFormat": "{{etl_job}}",
+          "interval": "1m"
         }
       ],
-      "description": "Result of each job's most recent run over time. Green = last run succeeded, red = failed.",
+      "description": "Blue = running, green = last run succeeded, red = last run failed. Each band lasts until the next run. Runs shorter than the query step (\u22481m) may not show as blue.",
       "options": {
         "showValue": "never",
         "mergeValues": true,
@@ -500,10 +497,15 @@
             {
               "type": "value",
               "options": {
+                "-1": {
+                  "text": "running",
+                  "color": "blue",
+                  "index": 0
+                },
                 "0": {
                   "text": "OK",
                   "color": "green",
-                  "index": 0
+                  "index": 1
                 }
               }
             },
@@ -515,7 +517,7 @@
                 "result": {
                   "text": "FAILED",
                   "color": "red",
-                  "index": 1
+                  "index": 2
                 }
               }
             }
