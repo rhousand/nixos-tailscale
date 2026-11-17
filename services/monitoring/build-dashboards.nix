@@ -47,7 +47,14 @@ in {
 
   # Hand-rolled: etl_job_* / dbt_* series come from bashlib/etl_metrics.sh in the
   # tryon-etl-python repo. Alerts for the same series are in etl-alerts.nix. See
-  # documentation/telemetry-plan.md.
-  environment.etc."grafana-dashboards/etl-jobs.json".source =
-    ../../dashboards/etl-jobs.json;
+  # documentation/telemetry-plan.md and documentation/python-etl-telemetry-rollout.md.
+  #
+  # The overview covers every ETL job (dbt + Python); dbt-jobs is per-model detail,
+  # filtered to dbt_* jobs. dbt-jobs keeps uid "etl-jobs" so existing links still
+  # resolve. The /etc file is renamed too, so Grafana drops the old file rather
+  # than provisioning two dashboards with one uid.
+  environment.etc."grafana-dashboards/etl-overview.json".source =
+    ../../dashboards/etl-overview.json;
+  environment.etc."grafana-dashboards/dbt-jobs.json".source =
+    ../../dashboards/dbt-jobs.json;
 }
