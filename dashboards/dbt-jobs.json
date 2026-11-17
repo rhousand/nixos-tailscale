@@ -1,6 +1,6 @@
 {
   "uid": "etl-jobs",
-  "title": "ETL jobs (tryon-etl-python)",
+  "title": "dbt jobs (tryon-etl-python)",
   "tags": [
     "etl",
     "dbt",
@@ -8,7 +8,7 @@
   ],
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 4,
+  "version": 5,
   "refresh": "1m",
   "time": {
     "from": "now-7d",
@@ -25,14 +25,14 @@
           "uid": "prometheus"
         },
         "query": {
-          "query": "label_values(etl_job_exit_code, etl_job)",
+          "query": "label_values(etl_job_exit_code{etl_job=~\"dbt_.*\"}, etl_job)",
           "refId": "etl_job"
         },
-        "definition": "label_values(etl_job_exit_code, etl_job)",
+        "definition": "label_values(etl_job_exit_code{etl_job=~\"dbt_.*\"}, etl_job)",
         "refresh": 2,
         "includeAll": true,
         "multi": true,
-        "allValue": ".*",
+        "allValue": "dbt_.*",
         "current": {
           "text": "All",
           "value": "$__all"
@@ -591,6 +591,15 @@
         },
         "overrides": []
       }
+    }
+  ],
+  "links": [
+    {
+      "title": "ETL jobs overview",
+      "type": "link",
+      "url": "/d/etl-overview",
+      "icon": "dashboard",
+      "keepTime": true
     }
   ]
 }
