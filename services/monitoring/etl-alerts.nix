@@ -40,8 +40,11 @@
             - alert: EtlJobHung
               # Started but not finished. 3h fits the longest job (dbt prod full
               # refresh, ~2h); scope by etl_job if shorter jobs need tighter limits.
+              # A job's first run has no last_run series yet, and a comparison with an
+              # absent series returns nothing -- so default it to 0.
               expr: |
-                etl_job_last_start_timestamp_seconds > etl_job_last_run_timestamp_seconds
+                etl_job_last_start_timestamp_seconds
+                  > (etl_job_last_run_timestamp_seconds or etl_job_last_start_timestamp_seconds * 0)
                 and time() - etl_job_last_start_timestamp_seconds > 3 * 3600
               labels:
                 severity: warning
