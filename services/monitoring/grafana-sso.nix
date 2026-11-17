@@ -9,6 +9,10 @@ let
   # claim -> Security groups), else the token carries no groups and everyone is
   # denied.
   allowedGroups = "7ce40d56-6f78-4c7e-8ad1-c728af739d06";
+  # Object ID of the Entra security group whose members are Grafana org Admins
+  # (playlists, folders, etc.). Everyone else in allowedGroups stays Viewer.
+  # Delivered via the same groups claim allowedGroups relies on.
+  adminGroup = "2a0f6f76-1ac6-4634-a8a2-f7607d684380";
 in {
   # --- Grafana sign-in via Microsoft Entra ID (Azure AD) ---
   # OAuth needs HTTPS; TLS is terminated by `tailscale serve` below, so the
@@ -32,6 +36,10 @@ in {
       allowed_domains = allowedDomains;
       allowed_groups = allowedGroups; # restrict sign-in to one Entra group
       role_attribute_strict = false;
+      # Roles are re-synced from Entra on every login, so a role set by hand in
+      # the Grafana UI does not stick -- grant it here instead. "Main Org." is
+      # Grafana's default organisation name.
+      org_mapping = "${adminGroup}:Main Org.:Admin";
     };
     # Everyone who signs in gets read-only unless mapped higher.
     users.auto_assign_org_role = "Viewer";
