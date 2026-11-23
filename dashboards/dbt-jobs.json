@@ -8,7 +8,7 @@
   ],
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 5,
+  "version": 6,
   "refresh": "1m",
   "time": {
     "from": "now-7d",
@@ -598,6 +598,13 @@
       "title": "ETL jobs overview",
       "type": "link",
       "url": "/d/etl-overview",
+      "icon": "dashboard",
+      "keepTime": true
+    },
+    {
+      "title": "Python jobs",
+      "type": "link",
+      "url": "/d/python-jobs",
       "icon": "dashboard",
       "keepTime": true
     }
