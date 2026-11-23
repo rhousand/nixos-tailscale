@@ -8,7 +8,7 @@
   ],
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 2,
+  "version": 3,
   "refresh": "1m",
   "time": {
     "from": "now-7d",
@@ -19,6 +19,13 @@
       "title": "dbt jobs",
       "type": "link",
       "url": "/d/etl-jobs",
+      "icon": "dashboard",
+      "keepTime": true
+    },
+    {
+      "title": "Python jobs",
+      "type": "link",
+      "url": "/d/python-jobs",
       "icon": "dashboard",
       "keepTime": true
     }

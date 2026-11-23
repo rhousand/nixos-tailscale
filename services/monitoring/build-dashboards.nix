@@ -50,11 +50,14 @@ in {
   # documentation/telemetry-plan.md and documentation/python-etl-telemetry-rollout.md.
   #
   # The overview covers every ETL job (dbt + Python); dbt-jobs is per-model detail,
-  # filtered to dbt_* jobs. dbt-jobs keeps uid "etl-jobs" so existing links still
-  # resolve. The /etc file is renamed too, so Grafana drops the old file rather
-  # than provisioning two dashboards with one uid.
+  # filtered to dbt_* jobs, and python-jobs is per-run counts (etl_rows) for py_*
+  # jobs. dbt-jobs keeps uid "etl-jobs" so existing links still resolve. The /etc
+  # file is renamed too, so Grafana drops the old file rather than provisioning
+  # two dashboards with one uid.
   environment.etc."grafana-dashboards/etl-overview.json".source =
     ../../dashboards/etl-overview.json;
   environment.etc."grafana-dashboards/dbt-jobs.json".source =
     ../../dashboards/dbt-jobs.json;
+  environment.etc."grafana-dashboards/python-jobs.json".source =
+    ../../dashboards/python-jobs.json;
 }
