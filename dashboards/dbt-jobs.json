@@ -8,7 +8,7 @@
   ],
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 6,
+  "version": 8,
   "refresh": "1m",
   "time": {
     "from": "now-7d",
@@ -69,10 +69,10 @@
     {
       "id": 1,
       "type": "stat",
-      "title": "Last run result",
+      "title": "Failing now",
       "gridPos": {
-        "h": 6,
-        "w": 8,
+        "h": 4,
+        "w": 6,
         "x": 0,
         "y": 0
       },
@@ -83,12 +83,11 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "etl_job_exit_code{etl_job=~\"$etl_job\"}",
-          "legendFormat": "{{etl_job}}",
+          "expr": "count(etl_job_exit_code{etl_job=~\"$etl_job\"} != 0) or vector(0)",
           "instant": true
         }
       ],
-      "description": "Exit code of each job's last run. 0 = OK.",
+      "description": "Jobs whose last run exited non-zero. Clears when the job next succeeds.",
       "options": {
         "reduceOptions": {
           "calcs": [
@@ -96,22 +95,10 @@
           ]
         },
         "colorMode": "background",
-        "textMode": "value_and_name"
+        "graphMode": "none"
       },
       "fieldConfig": {
         "defaults": {
-          "mappings": [
-            {
-              "type": "value",
-              "options": {
-                "0": {
-                  "text": "OK",
-                  "color": "green",
-                  "index": 0
-                }
-              }
-            }
-          ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -132,11 +119,11 @@
     {
       "id": 2,
       "type": "stat",
-      "title": "Hours since last success",
+      "title": "Stale",
       "gridPos": {
-        "h": 6,
-        "w": 8,
-        "x": 8,
+        "h": 4,
+        "w": 6,
+        "x": 6,
         "y": 0
       },
       "datasource": {
@@ -146,12 +133,11 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "(time() - etl_job_last_success_timestamp_seconds{etl_job=~\"$etl_job\"}) / 3600",
-          "legendFormat": "{{etl_job}}",
+          "expr": "count(time() - etl_job_last_success_timestamp_seconds{etl_job=~\"$etl_job\"} > on (instance, etl_job) etl_job_expected_interval_seconds{etl_job=~\"$etl_job\"}) or vector(0)",
           "instant": true
         }
       ],
-      "description": "Orange past 24h, red past 26h (sized for daily jobs). EtlJobStale alerts on each job's own expected interval.",
+      "description": "Jobs with no success within their own expected interval. Jobs without an interval (manual / file-driven) are never stale.",
       "options": {
         "reduceOptions": {
           "calcs": [
@@ -159,12 +145,10 @@
           ]
         },
         "colorMode": "background",
-        "textMode": "value_and_name"
+        "graphMode": "none"
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "h",
-          "decimals": 1,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -174,11 +158,7 @@
               },
               {
                 "color": "orange",
-                "value": 24
-              },
-              {
-                "color": "red",
-                "value": 26
+                "value": 1
               }
             ]
           }
@@ -191,9 +171,9 @@
       "type": "stat",
       "title": "Running now",
       "gridPos": {
-        "h": 6,
-        "w": 8,
-        "x": 16,
+        "h": 4,
+        "w": 6,
+        "x": 12,
         "y": 0
       },
       "datasource": {
@@ -203,12 +183,11 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "etl_job_last_start_timestamp_seconds{etl_job=~\"$etl_job\"} > bool (etl_job_last_run_timestamp_seconds{etl_job=~\"$etl_job\"} or etl_job_last_start_timestamp_seconds{etl_job=~\"$etl_job\"} * 0)",
-          "legendFormat": "{{etl_job}}",
+          "expr": "count(etl_job_last_start_timestamp_seconds{etl_job=~\"$etl_job\"} > bool (etl_job_last_run_timestamp_seconds{etl_job=~\"$etl_job\"} or etl_job_last_start_timestamp_seconds{etl_job=~\"$etl_job\"} * 0) == 1) or vector(0)",
           "instant": true
         }
       ],
-      "description": "1 while a job has started but not finished, including its first-ever run (no last_run yet).",
+      "description": "Jobs that started but have not finished, including a first-ever run.",
       "options": {
         "reduceOptions": {
           "calcs": [
@@ -216,33 +195,340 @@
           ]
         },
         "colorMode": "background",
-        "textMode": "value_and_name"
+        "graphMode": "none"
       },
       "fieldConfig": {
         "defaults": {
-          "mappings": [
-            {
-              "type": "value",
-              "options": {
-                "0": {
-                  "text": "idle",
-                  "color": "transparent",
-                  "index": 0
-                },
-                "1": {
-                  "text": "running",
-                  "color": "blue",
-                  "index": 1
-                }
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "blue",
+                "value": 1
               }
-            }
-          ]
+            ]
+          }
         },
         "overrides": []
       }
     },
     {
-      "id": 9,
+      "type": "stat",
+      "title": "dbt tests failing",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "dbt tests that failed or errored in each job's last build. Same signal as the DbtTestsFailing alert.",
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "expr": "sum(dbt_nodes_total{etl_job=~\"$etl_job\", resource_type=\"test\", status=~\"fail|error\"}) or vector(0)"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "id": 4
+    },
+    {
+      "id": 5,
+      "type": "table",
+      "title": "dbt jobs",
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "((max by (etl_job) (etl_job_last_start_timestamp_seconds{etl_job=~\"$etl_job\"} > bool (etl_job_last_run_timestamp_seconds{etl_job=~\"$etl_job\"} or etl_job_last_start_timestamp_seconds{etl_job=~\"$etl_job\"} * 0))) == 1) - 2 or max by (etl_job) (etl_job_exit_code{etl_job=~\"$etl_job\"})",
+          "format": "table",
+          "instant": true
+        },
+        {
+          "refId": "B",
+          "expr": "max by (etl_job) (etl_job_last_run_timestamp_seconds{etl_job=~\"$etl_job\"} * 1000)",
+          "format": "table",
+          "instant": true
+        },
+        {
+          "refId": "C",
+          "expr": "max by (etl_job) (time() - etl_job_last_success_timestamp_seconds{etl_job=~\"$etl_job\"})",
+          "format": "table",
+          "instant": true
+        },
+        {
+          "refId": "D",
+          "expr": "max by (etl_job) ((time() - etl_job_last_success_timestamp_seconds{etl_job=~\"$etl_job\"}) / on (instance, etl_job) etl_job_expected_interval_seconds{etl_job=~\"$etl_job\"} * 100)",
+          "format": "table",
+          "instant": true
+        },
+        {
+          "refId": "E",
+          "expr": "max by (etl_job) (etl_job_duration_seconds{etl_job=~\"$etl_job\"})",
+          "format": "table",
+          "instant": true
+        },
+        {
+          "refId": "G",
+          "format": "table",
+          "instant": true,
+          "expr": "sum by (etl_job) (dbt_nodes_total{etl_job=~\"$etl_job\", resource_type=\"test\", status=~\"fail|error\"}) or sum by (etl_job) (dbt_nodes_total{etl_job=~\"$etl_job\", resource_type=\"test\"}) * 0"
+        }
+      ],
+      "description": "One row per dbt job. Status: blue RUNNING while a run is in progress, otherwise green OK / red FAILED for the last run. \"% of interval\" is time since success divided by the job's own expected interval, so weekly jobs (e.g. Athena) only turn red when they actually miss their week. Blank for jobs without an interval (e.g. manual ffs). \"Failed tests\" is from the job's last build.",
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {
+              "etl_job": 0,
+              "Value #A": 1,
+              "Value #B": 2,
+              "Value #C": 3,
+              "Value #D": 4,
+              "Value #E": 5,
+              "Value #G": 6
+            },
+            "renameByName": {
+              "etl_job": "Job",
+              "Value #A": "Status",
+              "Value #B": "Last run",
+              "Value #C": "Since success",
+              "Value #D": "% of interval",
+              "Value #E": "Duration",
+              "Value #G": "Failed tests"
+            }
+          }
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "% of interval",
+            "desc": true
+          }
+        ],
+        "footer": {
+          "show": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "filterable": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Status"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "-1": {
+                        "text": "RUNNING",
+                        "color": "blue",
+                        "index": 0
+                      },
+                      "0": {
+                        "text": "OK",
+                        "color": "green",
+                        "index": 1
+                      }
+                    }
+                  },
+                  {
+                    "type": "range",
+                    "options": {
+                      "from": 1,
+                      "to": 255,
+                      "result": {
+                        "text": "FAILED",
+                        "color": "red",
+                        "index": 2
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Last run"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "dateTimeFromNow"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Since success"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "dtdurations"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "% of interval"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 80
+                    },
+                    {
+                      "color": "red",
+                      "value": 100
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Duration"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Failed tests"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 6,
       "type": "stat",
       "title": "Time since last dbt build",
       "description": "When node metrics below were last refreshed. Jobs that skip their build when there is no new data (fpna_event) keep showing their last build's nodes.",
@@ -250,7 +536,7 @@
         "h": 5,
         "w": 24,
         "x": 0,
-        "y": 6
+        "y": 13
       },
       "datasource": {
         "type": "prometheus",
@@ -281,14 +567,14 @@
       }
     },
     {
-      "id": 4,
+      "id": 7,
       "type": "timeseries",
       "title": "Job duration",
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 11
+        "y": 18
       },
       "datasource": {
         "type": "prometheus",
@@ -313,14 +599,14 @@
       }
     },
     {
-      "id": 5,
+      "id": 8,
       "type": "timeseries",
       "title": "dbt build elapsed",
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 11
+        "y": 18
       },
       "datasource": {
         "type": "prometheus",
@@ -345,14 +631,14 @@
       }
     },
     {
-      "id": 6,
+      "id": 9,
       "type": "bargauge",
       "title": "Slowest nodes (last build)",
       "gridPos": {
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 19
+        "y": 26
       },
       "datasource": {
         "type": "prometheus",
@@ -383,14 +669,14 @@
       }
     },
     {
-      "id": 7,
+      "id": 10,
       "type": "table",
       "title": "Failing or erroring dbt nodes (last build)",
       "gridPos": {
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 19
+        "y": 26
       },
       "datasource": {
         "type": "prometheus",
@@ -428,7 +714,7 @@
       ]
     },
     {
-      "id": 10,
+      "id": 11,
       "type": "table",
       "title": "Rows affected per model (last build)",
       "description": "Sort by any column; use the funnel on Model to filter by name. \"vs 24h ago\" is blank when the model has no value 24h earlier.",
@@ -436,7 +722,7 @@
         "h": 12,
         "w": 10,
         "x": 0,
-        "y": 29
+        "y": 36
       },
       "datasource": {
         "type": "prometheus",
@@ -545,7 +831,7 @@
       }
     },
     {
-      "id": 11,
+      "id": 12,
       "type": "timeseries",
       "title": "Rows affected trend (top 15 of selected models)",
       "description": "Pick models in the Model variable to compare them. With Model = All, only the 15 largest are drawn at each point in time.",
@@ -553,7 +839,7 @@
         "h": 12,
         "w": 14,
         "x": 10,
-        "y": 29
+        "y": 36
       },
       "datasource": {
         "type": "prometheus",

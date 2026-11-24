@@ -9,7 +9,7 @@
   ],
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 1,
+  "version": 3,
   "refresh": "1m",
   "time": {
     "from": "now-7d",
@@ -349,7 +349,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "max by (etl_job) (etl_job_exit_code{etl_job=~\"$etl_job\", etl_job=~\"$category\"})",
+          "expr": "((max by (etl_job) (etl_job_last_start_timestamp_seconds{etl_job=~\"$etl_job\", etl_job=~\"$category\"} > bool (etl_job_last_run_timestamp_seconds{etl_job=~\"$etl_job\", etl_job=~\"$category\"} or etl_job_last_start_timestamp_seconds{etl_job=~\"$etl_job\", etl_job=~\"$category\"} * 0))) == 1) - 2 or max by (etl_job) (etl_job_exit_code{etl_job=~\"$etl_job\", etl_job=~\"$category\"})",
           "format": "table",
           "instant": true
         },
@@ -378,19 +378,13 @@
           "instant": true
         },
         {
-          "refId": "F",
-          "expr": "max by (etl_job) (etl_job_last_start_timestamp_seconds{etl_job=~\"$etl_job\", etl_job=~\"$category\"} > bool (etl_job_last_run_timestamp_seconds{etl_job=~\"$etl_job\", etl_job=~\"$category\"} or etl_job_last_start_timestamp_seconds{etl_job=~\"$etl_job\", etl_job=~\"$category\"} * 0))",
-          "format": "table",
-          "instant": true
-        },
-        {
           "refId": "G",
           "format": "table",
           "instant": true,
           "expr": "sum by (etl_job) (etl_rows{etl_job=~\"$etl_job\", etl_job=~\"$category\", stage=~\".*_failed\"})"
         }
       ],
-      "description": "One row per job. \"% of interval\" is time since success divided by the job's own expected interval, so hourly and weekly jobs are judged fairly (red at 100% = stale). Blank for jobs without an interval. \"Failed items\" sums the job's *_failed counts from its last run; blank if the script reports no counts.",
+      "description": "One row per job. Status: blue RUNNING while a run is in progress, otherwise green OK / red FAILED for the last run. \"% of interval\" is time since success divided by the job's own expected interval, so hourly and weekly jobs are judged fairly (red at 100% = stale). Blank for jobs without an interval. \"Failed items\" sums the job's *_failed counts from its last run; blank if the script reports no counts.",
       "transformations": [
         {
           "id": "merge",
@@ -405,17 +399,15 @@
             "indexByName": {
               "etl_job": 0,
               "Value #A": 1,
-              "Value #F": 2,
-              "Value #B": 3,
-              "Value #C": 4,
-              "Value #D": 5,
-              "Value #E": 6,
-              "Value #G": 7
+              "Value #B": 2,
+              "Value #C": 3,
+              "Value #D": 4,
+              "Value #E": 5,
+              "Value #G": 6
             },
             "renameByName": {
               "etl_job": "Job",
               "Value #A": "Status",
-              "Value #F": "Running",
               "Value #B": "Last run",
               "Value #C": "Since success",
               "Value #D": "% of interval",
@@ -456,10 +448,15 @@
                   {
                     "type": "value",
                     "options": {
+                      "-1": {
+                        "text": "RUNNING",
+                        "color": "blue",
+                        "index": 0
+                      },
                       "0": {
                         "text": "OK",
                         "color": "green",
-                        "index": 0
+                        "index": 1
                       }
                     }
                   },
@@ -471,7 +468,7 @@
                       "result": {
                         "text": "FAILED",
                         "color": "red",
-                        "index": 1
+                        "index": 2
                       }
                     }
                   }
@@ -481,39 +478,6 @@
                 "id": "custom.cellOptions",
                 "value": {
                   "type": "color-background"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Running"
-            },
-            "properties": [
-              {
-                "id": "mappings",
-                "value": [
-                  {
-                    "type": "value",
-                    "options": {
-                      "0": {
-                        "text": "",
-                        "index": 0
-                      },
-                      "1": {
-                        "text": "running",
-                        "color": "blue",
-                        "index": 1
-                      }
-                    }
-                  }
-                ]
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-text"
                 }
               }
             ]
@@ -631,9 +595,9 @@
     },
     {
       "type": "table",
-      "title": "Last run counts (job \u00d7 stage)",
+      "title": "Files: last run counts",
       "gridPos": {
-        "h": 11,
+        "h": 9,
         "w": 24,
         "x": 0,
         "y": 16
@@ -642,13 +606,13 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "What each job's last run did, one column per stage. Blank = that job doesn't report that stage.",
+      "description": "Files found / matched / routed / uploaded / written, bytes written, and BatchProcessor items (ADT ingest, gohealth, Humana MFT, vbm_views_to_s3). files_loaded (into Snowflake) is under Database. Blank = that job doesn't report that stage.",
       "targets": [
         {
           "refId": "A",
           "format": "table",
           "instant": true,
-          "expr": "max by (etl_job, stage) (etl_rows{etl_job=~\"$etl_job\", etl_job=~\"$category\", stage=~\"$stage\"})"
+          "expr": "max by (etl_job, stage) (etl_rows{etl_job=~\"$etl_job\", etl_job=~\"$category\", stage=~\"$stage\", stage=~\"files_(found|failed|matched|routed|uploaded|written)|bytes_.*|items_.*\"})"
         }
       ],
       "transformations": [
@@ -678,7 +642,10 @@
       "fieldConfig": {
         "defaults": {
           "custom": {
-            "filterable": true
+            "filterable": true,
+            "minWidth": 50,
+            "wrapHeaderText": true,
+            "align": "auto"
           },
           "unit": "short",
           "noValue": ""
@@ -719,13 +686,197 @@
       "id": 6
     },
     {
+      "type": "table",
+      "title": "Database: last run counts",
+      "gridPos": {
+        "h": 9,
+        "w": 16,
+        "x": 0,
+        "y": 25
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Tables exported / loaded, views synced / dropped, rows extracted / loaded / errored, and files loaded into Snowflake. Exports appear here and under Files. Blank = that job doesn't report that stage.",
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "instant": true,
+          "expr": "max by (etl_job, stage) (etl_rows{etl_job=~\"$etl_job\", etl_job=~\"$category\", stage=~\"$stage\", stage=~\"tables_.*|views_.*|rows_.*|files_loaded\"})"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "groupingToMatrix",
+          "options": {
+            "columnField": "stage",
+            "rowField": "etl_job",
+            "valueField": "Value"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "etl_job\\stage": "Job"
+            }
+          }
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "footer": {
+          "show": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "filterable": true,
+            "minWidth": 50,
+            "wrapHeaderText": true,
+            "align": "auto"
+          },
+          "unit": "short",
+          "noValue": ""
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*_failed"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "id": 7
+    },
+    {
+      "type": "table",
+      "title": "Email: last run counts",
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 16,
+        "y": 25
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Emails sent / failed (Sigma scorecard). Send failures don't fail the job, so emails_failed is the only signal.",
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "instant": true,
+          "expr": "max by (etl_job, stage) (etl_rows{etl_job=~\"$etl_job\", etl_job=~\"$category\", stage=~\"$stage\", stage=~\"emails_.*\"})"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "groupingToMatrix",
+          "options": {
+            "columnField": "stage",
+            "rowField": "etl_job",
+            "valueField": "Value"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "etl_job\\stage": "Job"
+            }
+          }
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "footer": {
+          "show": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "filterable": true,
+            "minWidth": 50,
+            "wrapHeaderText": true,
+            "align": "auto"
+          },
+          "unit": "short",
+          "noValue": ""
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*_failed"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "id": 8
+    },
+    {
       "type": "timeseries",
       "title": "Items processed per run",
       "gridPos": {
         "h": 9,
         "w": 16,
         "x": 0,
-        "y": 27
+        "y": 34
       },
       "datasource": {
         "type": "prometheus",
@@ -764,7 +915,7 @@
         },
         "overrides": []
       },
-      "id": 7
+      "id": 9
     },
     {
       "type": "bargauge",
@@ -773,7 +924,7 @@
         "h": 9,
         "w": 8,
         "x": 16,
-        "y": 27
+        "y": 34
       },
       "datasource": {
         "type": "prometheus",
@@ -808,7 +959,7 @@
         },
         "overrides": []
       },
-      "id": 8
+      "id": 10
     },
     {
       "type": "table",
@@ -817,7 +968,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 36
+        "y": 43
       },
       "datasource": {
         "type": "prometheus",
@@ -920,17 +1071,17 @@
           }
         ]
       },
-      "id": 9
+      "id": 11
     },
     {
-      "id": 10,
+      "id": 12,
       "type": "state-timeline",
       "title": "Run history",
       "gridPos": {
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 46
+        "y": 53
       },
       "datasource": {
         "type": "prometheus",
@@ -1005,14 +1156,14 @@
       }
     },
     {
-      "id": 11,
+      "id": 13,
       "type": "timeseries",
       "title": "Duration trend",
       "gridPos": {
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 56
+        "y": 63
       },
       "datasource": {
         "type": "prometheus",
