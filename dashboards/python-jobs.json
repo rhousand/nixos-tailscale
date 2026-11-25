@@ -690,7 +690,7 @@
       "title": "Database: last run counts",
       "gridPos": {
         "h": 9,
-        "w": 16,
+        "w": 24,
         "x": 0,
         "y": 25
       },
@@ -778,13 +778,61 @@
       "id": 7
     },
     {
+      "type": "timeseries",
+      "title": "Items processed per run",
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 34
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Count per job and stage, stepping at each run. Values are per run, not cumulative. Narrow with the Stage picker.",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (etl_job, stage) (etl_rows{etl_job=~\"$etl_job\", etl_job=~\"$category\", stage=~\"$stage\"})",
+          "legendFormat": "{{etl_job}} / {{stage}}"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "sortBy": "Last *",
+          "sortDesc": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineInterpolation": "stepAfter"
+          }
+        },
+        "overrides": []
+      },
+      "id": 9
+    },
+    {
       "type": "table",
       "title": "Email: last run counts",
       "gridPos": {
         "h": 9,
-        "w": 8,
-        "x": 16,
-        "y": 25
+        "w": 12,
+        "x": 0,
+        "y": 43
       },
       "datasource": {
         "type": "prometheus",
@@ -870,61 +918,13 @@
       "id": 8
     },
     {
-      "type": "timeseries",
-      "title": "Items processed per run",
-      "gridPos": {
-        "h": 9,
-        "w": 16,
-        "x": 0,
-        "y": 34
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "description": "Count per job and stage, stepping at each run. Values are per run, not cumulative. Narrow with the Stage picker.",
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "max by (etl_job, stage) (etl_rows{etl_job=~\"$etl_job\", etl_job=~\"$category\", stage=~\"$stage\"})",
-          "legendFormat": "{{etl_job}} / {{stage}}"
-        }
-      ],
-      "options": {
-        "legend": {
-          "displayMode": "table",
-          "placement": "right",
-          "calcs": [
-            "lastNotNull",
-            "max"
-          ],
-          "sortBy": "Last *",
-          "sortDesc": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "custom": {
-            "lineInterpolation": "stepAfter"
-          }
-        },
-        "overrides": []
-      },
-      "id": 9
-    },
-    {
       "type": "bargauge",
       "title": "Failures within runs",
       "gridPos": {
         "h": 9,
-        "w": 8,
-        "x": 16,
-        "y": 34
+        "w": 12,
+        "x": 12,
+        "y": 43
       },
       "datasource": {
         "type": "prometheus",
@@ -968,7 +968,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 43
+        "y": 52
       },
       "datasource": {
         "type": "prometheus",
@@ -1081,7 +1081,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 53
+        "y": 62
       },
       "datasource": {
         "type": "prometheus",
@@ -1095,7 +1095,7 @@
           "interval": "1m"
         }
       ],
-      "description": "Blue = running, green = last run succeeded, red = last run failed. Each band lasts until the next run. Runs shorter than the query step (\u22481m) may not show as blue.",
+      "description": "Blue = running, green = last run succeeded, red = last run failed. Each band lasts until the next run. Runs shorter than the query step (≈1m) may not show as blue.",
       "options": {
         "showValue": "never",
         "mergeValues": true,
@@ -1163,7 +1163,7 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 63
+        "y": 72
       },
       "datasource": {
         "type": "prometheus",
